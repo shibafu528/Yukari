@@ -23,6 +23,7 @@ import shibafu.yukari.activity.MuteActivity
 import shibafu.yukari.common.StatusChildUI
 import shibafu.yukari.common.StatusUI
 import shibafu.yukari.common.async.ParallelAsyncTask
+import shibafu.yukari.core.App
 import shibafu.yukari.database.Bookmark
 import shibafu.yukari.database.MuteConfig
 import shibafu.yukari.database.MuteMatch
@@ -76,7 +77,7 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
             } visibleWhen { !status.originStatus.url.isNullOrEmpty() },
 
             Action("ブックマークに追加") {
-                twitterService.database.updateRecord(Bookmark(status as TwitterStatus))
+                App.getInstance(requireContext()).database.updateRecord(Bookmark(status as TwitterStatus))
                 showToast("ブックマークしました")
             } visibleWhen { status is TwitterStatus },
 
@@ -189,10 +190,11 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
                     val status = status
                     val userRecord = userRecord ?: return@executeParallel
 
+                    val app = App.getInstance(requireContext())
                     if (status is Bookmark) {
-                        twitterService.database.deleteRecord(status)
+                        app.database.deleteRecord(status)
                     } else {
-                        twitterService.getProviderApi(userRecord)?.destroyStatus(userRecord, this.status)
+                        app.getProviderApi(userRecord)?.destroyStatus(userRecord, this.status)
                     }
                 }
                 requireActivity().finish()
@@ -205,10 +207,6 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
     }
 
     override fun onUserChanged(userRecord: AuthUserRecord?) {}
-
-    override fun onServiceConnected() {}
-
-    override fun onServiceDisconnected() {}
 
     /**
      * リストアップするコマンドのインターフェース

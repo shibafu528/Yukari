@@ -29,10 +29,12 @@ import shibafu.yukari.activity.base.ActionBarYukariBase
 import shibafu.yukari.common.NotificationChannelPrefix
 import shibafu.yukari.common.TabInfo
 import shibafu.yukari.common.UsedHashes
+import shibafu.yukari.core.App
 import shibafu.yukari.database.*
 import shibafu.yukari.entity.StatusDraft
 import shibafu.yukari.export.ConfigFileUtility
 import shibafu.yukari.fragment.SimpleAlertDialogFragment
+import shibafu.yukari.twitter.TwitterUtil
 import shibafu.yukari.util.LOG_TAG
 import shibafu.yukari.util.forEach
 import shibafu.yukari.util.set
@@ -150,10 +152,6 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
         job.cancel()
     }
 
-    override fun onServiceConnected() {}
-
-    override fun onServiceDisconnected() {}
-
     override fun onDialogChose(requestCode: Int, which: Int, extras: Bundle?) {
         when (requestCode) {
             DIALOG_IMPORT_FINISHED -> {
@@ -238,7 +236,7 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
     }
 
     private fun importAsync(driver: BackupDriver, fragment: BackupFragment) = async(Dispatchers.IO) {
-        val database = getDatabaseAwait() ?: return@async RuntimeException("Can't get database instance")
+        val database = App.getInstance(applicationContext).database
         database.beginTransaction()
         try {
             fun <F, T : DBRecord> importIntoDatabase(from: Class<F>, to: Class<T>, json: String)
@@ -276,7 +274,7 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
                             }
 
                             // y4a 2.0以下との互換処理。Twitterアカウントのプロフィール情報を取得する。
-                            val twitter = twitterService.getTwitterOrThrow(null)
+                            val twitter = TwitterUtil.getTwitterOrThrow(applicationContext, null)
                             accounts.forEach eachRecord@{
                                 // ProviderID == null -> Twitter
                                 if (it.containsKey(CentralDatabase.COL_ACCOUNTS_PROVIDER_ID)) {
@@ -347,7 +345,7 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
     }
 
     private fun exportAsync(driver: BackupDriver, fragment: BackupFragment) = async(Dispatchers.IO) {
-        val database = getDatabaseAwait() ?: return@async RuntimeException("Can't get database instance")
+        val database = App.getInstance(applicationContext).database
         val exports = mutableMapOf<String, String>()
         fragment.checkedStates.forEach { i, b ->
             @Suppress("UNCHECKED_CAST")
@@ -372,18 +370,6 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
         exports.forEach { entry ->
             driver.writeFile(entry.key, entry.value)
         }
-    }
-
-    private suspend fun getDatabaseAwait(): CentralDatabase? {
-        var count = 0
-        while (!isTwitterServiceBound || twitterService == null || twitterService?.database == null) {
-            delay(100)
-            if (++count >= 30) {
-                return null
-            }
-        }
-
-        return twitterService.database
     }
 
     class BackupFragment : ListFragment() {

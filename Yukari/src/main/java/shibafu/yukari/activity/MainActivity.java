@@ -49,6 +49,8 @@ import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.async.TwitterAsyncTask;
+import shibafu.yukari.core.App;
+import shibafu.yukari.database.AccountManager;
 import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.databinding.ActivityMainBinding;
@@ -68,7 +70,7 @@ import shibafu.yukari.fragment.tabcontent.TimelineTab;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
 import shibafu.yukari.linkage.ProviderStream;
 import shibafu.yukari.mastodon.source.HashTag;
-import shibafu.yukari.service.TwitterService;
+import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 
@@ -200,15 +202,14 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         ibSearch.setOnClickListener(v -> {
             PopupMenu popupMenu = new PopupMenu(MainActivity.this, v);
             popupMenu.inflate(R.menu.search);
-            TwitterService service = getTwitterService();
-            if (service != null) {
-                // Mastodonアカウントを持っている場合、紛らわしいメニュー項目にprefixを付ける
-                boolean hasMastodonAccount = service.getUsers().stream().anyMatch(userRecord -> userRecord.Provider.getApiType() == Provider.API_MASTODON);
-                if (hasMastodonAccount) {
-                    MenuItem searchUsers = popupMenu.getMenu().findItem(R.id.action_search_users);
-                    searchUsers.setTitle("Twitter " + searchUsers.getTitle());
-                }
+
+            // Mastodonアカウントを持っている場合、紛らわしいメニュー項目にprefixを付ける
+            boolean hasMastodonAccount = App.getInstance(getApplicationContext()).getAccountManager().getUsers().stream().anyMatch(userRecord -> userRecord.Provider.getApiType() == Provider.API_MASTODON);
+            if (hasMastodonAccount) {
+                MenuItem searchUsers = popupMenu.getMenu().findItem(R.id.action_search_users);
+                searchUsers.setTitle("Twitter " + searchUsers.getTitle());
             }
+
             popupMenu.setOnMenuItemClickListener(menuItem -> {
                 switch (menuItem.getItemId()) {
                     case R.id.action_save_search: {
@@ -256,10 +257,9 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 }
 
                 if (tabFragment instanceof TimelineFragment) {
-                    TwitterService service = getTwitterService();
                     FilterQuery query = ((TimelineFragment) tabFragment).getQuery();
-                    if (service != null && query.isConnectedAnyDynamicChannel(service)) {
-                        query.disconnectAllDynamicChannel(service);
+                    if (query.isConnectedAnyDynamicChannel(this)) {
+                        query.disconnectAllDynamicChannel(this);
                     }
                 }
 
@@ -279,18 +279,13 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
         binding.ibStream.setOnClickListener(view -> {
             if (currentPage instanceof TimelineFragment) {
-                TwitterService service = getTwitterService();
-                if (service == null) {
-                    return;
-                }
-
                 FilterQuery query = ((TimelineFragment) currentPage).getQuery();
-                boolean isStreaming = query.isConnectedAnyDynamicChannel(service);
+                boolean isStreaming = query.isConnectedAnyDynamicChannel(this);
                 if (isStreaming) {
-                    query.disconnectAllDynamicChannel(service);
+                    query.disconnectAllDynamicChannel(this);
                     binding.ibStream.setImageResource(R.drawable.ic_pause_d);
                 } else {
-                    query.connectAllDynamicChannel(service);
+                    query.connectAllDynamicChannel(this);
                     binding.ibStream.setImageResource(R.drawable.ic_play_d);
                 }
             }
@@ -373,7 +368,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                 }
                 // If not exist...
                 if (tabType == TabType.TABTYPE_BOOKMARK) {
-                    TabInfo tabInfo = new TabInfo(tabType, pageList.size(), getTwitterService().getPrimaryUser());
+                    TabInfo tabInfo = new TabInfo(tabType, pageList.size(), App.getInstance(this).getAccountManager().getPrimaryUser());
                     tabInfo.setCloseable(true);
                     addTab(tabInfo);
                     binding.pager.getAdapter().notifyDataSetChanged();
@@ -609,7 +604,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
                         @Override
                         protected TwitterException doInBackground(Args... params) {
                             try {
-                                Twitter twitter = getTwitterService().getTwitterOrThrow(params[0].account);
+                                Twitter twitter = TwitterUtil.getTwitterOrThrow(getApplicationContext(), params[0].account);
                                 twitter.createSavedSearch(params[0].query);
                             } catch (TwitterException e) {
                                 e.printStackTrace();
@@ -648,7 +643,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
                         long time = System.currentTimeMillis();
 
-                        List<AuthUserRecord> users = getTwitterService().getUsers();
+                        List<AuthUserRecord> users = App.getInstance(getApplicationContext()).getAccountManager().getUsers();
                         String rawQuery = data.getStringExtra(Intent.EXTRA_TEXT);
                         FilterQuery query = QueryCompiler.compile(users, rawQuery);
                         TabInfo tabInfo = new TabInfo(TabType.TABTYPE_FILTER, pageList.size(), null, rawQuery);
@@ -715,7 +710,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         if (reload) {
             pageList.clear();
 
-            ArrayList<TabInfo> tabs = getTwitterService().getDatabase().getTabs();
+            ArrayList<TabInfo> tabs = App.getInstance(getApplicationContext()).getDatabase().getTabs();
             for (int i = 0; i < tabs.size(); i++) {
                 addTab(tabs.get(i));
                 if (tabs.get(i).isStartup()) {
@@ -795,7 +790,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         }
 
         if (!exist) {
-            AuthUserRecord userRecord = getTwitterService().findPreferredUser(Provider.API_TWITTER);
+            AuthUserRecord userRecord = App.getInstance(this).getAccountManager().findPreferredUser(Provider.API_TWITTER);
             if (userRecord == null) {
                 Toast.makeText(getApplicationContext(), "Twitterアカウントが認証されていないため、検索を実行できません。", Toast.LENGTH_SHORT).show();
                 return;
@@ -861,27 +856,25 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
         boolean hasDynamicChannel = false;
         boolean isStreaming = false;
-        TwitterService service = getTwitterService();
+        App app = App.getInstance(this);
 
-        if (service != null) {
-            for (FilterSource source : query.getSources()) {
-                DynamicChannelController dcc = source.getDynamicChannelController();
-                if (dcc != null) {
-                    hasDynamicChannel = true;
+        for (FilterSource source : query.getSources()) {
+            DynamicChannelController dcc = source.getDynamicChannelController();
+            if (dcc != null) {
+                hasDynamicChannel = true;
 
-                    AuthUserRecord userRecord = source.getSourceAccount();
-                    if (userRecord == null) {
-                        break;
-                    }
-
-                    ProviderStream stream = service.getProviderStream(userRecord);
-                    if (stream == null) {
-                        break;
-                    }
-
-                    isStreaming = dcc.isConnected(getApplicationContext(), stream) || isStreaming;
+                AuthUserRecord userRecord = source.getSourceAccount();
+                if (userRecord == null) {
                     break;
                 }
+
+                ProviderStream stream = app.getProviderStream(userRecord);
+                if (stream == null) {
+                    break;
+                }
+
+                isStreaming = dcc.isConnected(app, stream) || isStreaming;
+                break;
             }
         }
 
@@ -907,7 +900,10 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
     @Override
     public void onServiceConnected() {
-        if (getTwitterService().getUsers().isEmpty()) {
+        App app = App.getInstance(this);
+        AccountManager am = app.getAccountManager();
+
+        if (am.getUsers().isEmpty()) {
             Intent intent = new Intent(getApplicationContext(), WelcomeActivity.class);
             startActivityForResult(intent, REQUEST_OAUTH);
             finish();
@@ -918,7 +914,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
 
         QuickPostFragment quickPostFragment = (QuickPostFragment) getSupportFragmentManager().findFragmentById(R.id.flgQuickPost);
         if (quickPostFragment != null && quickPostFragment.getSelectedAccount() == null) {
-            AuthUserRecord primary = getTwitterService().getPrimaryUser();
+            AuthUserRecord primary = am.getPrimaryUser();
             if (primary == null) {
                 Toast.makeText(getApplicationContext(), "プライマリアカウントが取得できません\nクイック投稿は無効化されます", Toast.LENGTH_SHORT).show();
                 enableQuickPost = false;
@@ -929,7 +925,7 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         }
 
         //UserStreamを開始する
-        getTwitterService().startStreamChannels();
+        app.startStreamChannels();
 
         onNewIntent(getIntent());
 
@@ -939,9 +935,6 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
             }
         }
     }
-
-    @Override
-    public void onServiceDisconnected() {}
 
     class TabPagerAdapter extends FragmentStatePagerAdapter {
 

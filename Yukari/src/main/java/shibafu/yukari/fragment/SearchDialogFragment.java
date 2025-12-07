@@ -37,11 +37,12 @@ import shibafu.yukari.R;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.ThrowableAsyncTask;
 import shibafu.yukari.common.async.TwitterAsyncTask;
+import shibafu.yukari.core.App;
+import shibafu.yukari.database.AccountManager;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.database.SearchHistory;
-import shibafu.yukari.service.TwitterService;
-import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.database.AuthUserRecord;
+import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.util.AttrUtil;
 import twitter4j.ResponseList;
 import twitter4j.SavedSearch;
@@ -55,7 +56,7 @@ import java.util.List;
 /**
  * Created by shibafu on 14/02/13.
  */
-public class SearchDialogFragment extends DialogFragment implements TwitterServiceDelegate {
+public class SearchDialogFragment extends DialogFragment {
 
     public interface SearchDialogCallback {
         void onSearchQuery(String searchQuery, boolean isSavedSearch, boolean useTracking);
@@ -66,33 +67,6 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
     private EditText searchQuery;
     private SectionsPagerAdapter adapter;
     private ViewPager viewPager;
-    private TwitterServiceDelegate serviceDelegate;
-
-    @Override
-    public TwitterService getTwitterService() {
-        return serviceDelegate.getTwitterService();
-    }
-
-    @Override
-    public boolean isTwitterServiceBound() {
-        return serviceDelegate.isTwitterServiceBound();
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        serviceDelegate = (TwitterServiceDelegate) context;
-        if (serviceDelegate != null) {
-            Log.d("SearchDialog", "Attached Service Delegate");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        serviceDelegate = null;
-        Log.d("SearchDialog", "Detached Service Delegate");
-    }
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
@@ -242,7 +216,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         }
         else {
             //DBに検索履歴を保存
-            getTwitterService().getDatabase().updateSearchHistory(query);
+            App.getInstance(requireContext()).getDatabase().updateSearchHistory(query);
             //コールバック着火
             ((SearchDialogCallback)getActivity()).onSearchQuery(query, isSavedSearch, false);
             dismiss();
@@ -295,7 +269,6 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
 
     public static abstract class SearchChildFragment extends ListFragment {
         private SearchDialogFragment parent;
-        private TwitterService service;
 
         @Override
         public void onCreate(Bundle savedInstanceState) {
@@ -306,29 +279,12 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
             else if (getParentFragment() != null && getParentFragment() instanceof SearchDialogFragment) {
                 parent = (SearchDialogFragment) getParentFragment();
             }
-            service = parent.getTwitterService();
         }
 
         @Override
         public void onDestroy() {
             super.onDestroy();
             parent = null;
-            service = null;
-        }
-
-        protected TwitterService getService() {
-            return service;
-        }
-
-        protected TwitterService getServiceAwait() {
-            while (parent == null || parent.getTwitterService() == null) {
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            return parent.getTwitterService();
         }
 
         protected SearchDialogFragment getParent() {
@@ -357,7 +313,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
             task = new ParallelAsyncTask<Void, Void, List<SearchHistory>>() {
                 @Override
                 protected List<SearchHistory> doInBackground(Void... params) {
-                    return getServiceAwait().getDatabase().getSearchHistories();
+                    return App.getInstance(requireContext()).getDatabase().getSearchHistories();
                 }
 
                 @Override
@@ -405,7 +361,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
         public void onDialogChose(int requestCode, int which, @Nullable Bundle extras) {
             if (requestCode == DIALOG_CONFIRM) {
                 if (selected != null && which == DialogInterface.BUTTON_POSITIVE) {
-                    getService().getDatabase().deleteRecord(selected);
+                    App.getInstance(requireContext()).getDatabase().deleteRecord(selected);
                     Toast.makeText(getActivity(), "削除しました", Toast.LENGTH_LONG).show();
                     reloadHistory();
                 }
@@ -430,11 +386,11 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                     @Override
                     protected ThrowableResult<Trend[]> doInBackground(Void... params) {
                         try {
-                            TwitterService service = getServiceAwait();
-                            AuthUserRecord user = service.getPrimaryUser();
+                            AccountManager am = App.getInstance(requireContext()).getAccountManager();
+                            AuthUserRecord user = am.getPrimaryUser();
                             if (user == null || user.Provider.getApiType() != Provider.API_TWITTER) {
                                 user = null;
-                                for (AuthUserRecord u : service.getUsers()) {
+                                for (AuthUserRecord u : am.getUsers()) {
                                     if (u.Provider.getApiType() == Provider.API_TWITTER) {
                                         user = u;
                                         break;
@@ -444,7 +400,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                             if (user == null) {
                                 return new ThrowableResult<>(new IllegalStateException("Twitterアカウントがありません"));
                             }
-                            Twitter twitter = service.getTwitter(user);
+                            Twitter twitter = TwitterUtil.getTwitter(requireContext(), user);
                             if (twitter == null) {
                                 return new ThrowableResult<>(new IllegalStateException("サービス通信エラー"));
                             }
@@ -539,11 +495,11 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                     @Override
                     protected ThrowableResult<ResponseList<SavedSearch>> doInBackground(Void... params) {
                         try {
-                            TwitterService service = getServiceAwait();
-                            AuthUserRecord user = service.getPrimaryUser();
+                            AccountManager am = App.getInstance(requireContext()).getAccountManager();
+                            AuthUserRecord user = am.getPrimaryUser();
                             if (user == null || user.Provider.getApiType() != Provider.API_TWITTER) {
                                 user = null;
-                                for (AuthUserRecord u : service.getUsers()) {
+                                for (AuthUserRecord u : am.getUsers()) {
                                     if (u.Provider.getApiType() == Provider.API_TWITTER) {
                                         user = u;
                                         break;
@@ -553,7 +509,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                             if (user == null) {
                                 return new ThrowableResult<>(new IllegalStateException("Twitterアカウントがありません"));
                             }
-                            Twitter twitter = service.getTwitter(user);
+                            Twitter twitter = TwitterUtil.getTwitter(requireContext(), user);
                             if (twitter == null) {
                                 return new ThrowableResult<>(new IllegalStateException("サービス通信エラー"));
                             }
@@ -649,11 +605,11 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                         protected TwitterException doInBackground(SavedSearch... savedSearches) {
                             savedSearch = savedSearches[0];
                             try {
-                                TwitterService service = getServiceAwait();
-                                AuthUserRecord user = service.getPrimaryUser();
+                                AccountManager am = App.getInstance(requireContext()).getAccountManager();
+                                AuthUserRecord user = am.getPrimaryUser();
                                 if (user == null || user.Provider.getApiType() != Provider.API_TWITTER) {
                                     user = null;
-                                    for (AuthUserRecord u : service.getUsers()) {
+                                    for (AuthUserRecord u : am.getUsers()) {
                                         if (u.Provider.getApiType() == Provider.API_TWITTER) {
                                             user = u;
                                             break;
@@ -663,7 +619,7 @@ public class SearchDialogFragment extends DialogFragment implements TwitterServi
                                 if (user == null) {
                                     return null;
                                 }
-                                Twitter twitter = service.getTwitter(user);
+                                Twitter twitter = TwitterUtil.getTwitter(requireContext(), user);
                                 if (twitter == null) {
                                     twitter.destroySavedSearch(savedSearch.getId());
                                 }

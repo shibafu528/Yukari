@@ -24,7 +24,6 @@ import shibafu.yukari.linkage.TimelineHub
 import shibafu.yukari.mastodon.entity.DonNotification
 import shibafu.yukari.mastodon.entity.DonStatus
 import shibafu.yukari.mastodon.streaming.StreamClientManager
-import shibafu.yukari.service.TwitterService
 import shibafu.yukari.util.defaultSharedPreferences
 import shibafu.yukari.util.putDebugLog
 

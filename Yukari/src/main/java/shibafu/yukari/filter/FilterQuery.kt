@@ -1,5 +1,7 @@
 package shibafu.yukari.filter
 
+import android.content.Context
+import shibafu.yukari.core.App
 import shibafu.yukari.filter.sexp.AndNode
 import shibafu.yukari.filter.sexp.EqualsNode
 import shibafu.yukari.filter.sexp.EvaluateContext
@@ -8,8 +10,8 @@ import shibafu.yukari.filter.sexp.SNode
 import shibafu.yukari.filter.sexp.ValueNode
 import shibafu.yukari.filter.sexp.VariableNode
 import shibafu.yukari.filter.source.FilterSource
-import shibafu.yukari.service.TwitterService
 import shibafu.yukari.database.AuthUserRecord
+import shibafu.yukari.linkage.StreamCollectionProvider
 
 /**
  * コンパイルされた抽出クエリを表します。
@@ -48,15 +50,15 @@ data class FilterQuery(val sources: List<FilterSource>, private val rootNode: SN
 
     /**
      * いずれかのデータソースがStreamに接続された状態であるかチェックします。
-     * @param service [TwitterService]
+     * @param context [Context]
      */
-    fun isConnectedAnyDynamicChannel(service: TwitterService): Boolean {
+    fun isConnectedAnyDynamicChannel(context: Context): Boolean {
         sources.forEach { source ->
             val dcc = source.getDynamicChannelController() ?: return@forEach
             val userRecord = source.sourceAccount ?: return@forEach
-            val stream = service.getProviderStream(userRecord) ?: return@forEach
+            val stream = App.getInstance(context).getProviderStream(userRecord) ?: return@forEach
 
-            if (dcc.isConnected(service, stream)) {
+            if (dcc.isConnected(context, stream)) {
                 return true
             }
         }
@@ -65,27 +67,27 @@ data class FilterQuery(val sources: List<FilterSource>, private val rootNode: SN
 
     /**
      * すべての接続可能なデータソースをStreamに接続します。
-     * @param service [TwitterService]
+     * @param context [Context]
      */
-    fun connectAllDynamicChannel(service: TwitterService) {
+    fun connectAllDynamicChannel(context: Context) {
         sources.forEach { source ->
             val dcc = source.getDynamicChannelController() ?: return@forEach
             val userRecord = source.sourceAccount ?: return@forEach
-            val stream = service.getProviderStream(userRecord) ?: return@forEach
-            dcc.connect(service, stream)
+            val stream = App.getInstance(context).getProviderStream(userRecord) ?: return@forEach
+            dcc.connect(context, stream)
         }
     }
 
     /**
      * すべての接続可能なデータソースをStreamから切断します。
-     * @param service [TwitterService]
+     * @param context [Context]
      */
-    fun disconnectAllDynamicChannel(service: TwitterService) {
+    fun disconnectAllDynamicChannel(context: Context) {
         sources.forEach { source ->
             val dcc = source.getDynamicChannelController() ?: return@forEach
             val userRecord = source.sourceAccount ?: return@forEach
-            val stream = service.getProviderStream(userRecord) ?: return@forEach
-            dcc.disconnect(service, stream)
+            val stream = App.getInstance(context).getProviderStream(userRecord) ?: return@forEach
+            dcc.disconnect(context, stream)
         }
     }
 

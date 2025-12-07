@@ -28,11 +28,11 @@ import shibafu.yukari.R
 import shibafu.yukari.activity.AccountChooserActivity
 import shibafu.yukari.activity.ProfileActivity
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
+import shibafu.yukari.core.App
 import shibafu.yukari.database.Provider
 import shibafu.yukari.fragment.base.AbstractPaginateListFragment
 import shibafu.yukari.fragment.tabcontent.TwitterListTimelineFragment
 import shibafu.yukari.database.AuthUserRecord
-import shibafu.yukari.util.getTwitterServiceAwait
 import shibafu.yukari.util.showToast
 import twitter4j.Twitter
 import twitter4j.TwitterException
@@ -327,9 +327,7 @@ class TwitterListFragment : AbstractPaginateListFragment<UserList, TwitterListFr
 
     private fun <T> twitterAsync(block: suspend CoroutineScope.(twitter: Twitter) -> T?): Deferred<T?> {
         return async(Dispatchers.IO) {
-            val service = getTwitterServiceAwait() ?: return@async null
-
-            val api = service.getProviderApi(currentUser) ?: return@async null
+            val api = App.getInstance(requireContext()).getProviderApi(currentUser) ?: return@async null
             val twitter = api.getApiClient(currentUser) as? Twitter ?: return@async null
 
             block(twitter)

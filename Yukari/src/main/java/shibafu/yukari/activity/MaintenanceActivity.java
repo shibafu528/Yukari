@@ -13,6 +13,7 @@ import androidx.fragment.app.DialogFragment;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.async.SimpleAsyncTask;
+import shibafu.yukari.core.App;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.databinding.FragmentDbmtBinding;
 import shibafu.yukari.fragment.base.YukariBaseFragment;
@@ -33,12 +34,6 @@ public class MaintenanceActivity extends ActionBarYukariBase {
                     .commit();
         }
     }
-
-    @Override
-    public void onServiceConnected() {}
-
-    @Override
-    public void onServiceDisconnected() {}
 
     public static class DBMaintenanceFragment extends YukariBaseFragment {
         private FragmentDbmtBinding binding;
@@ -68,7 +63,7 @@ public class MaintenanceActivity extends ActionBarYukariBase {
 
                 @Override
                 protected Void doInBackground(Void... params) {
-                    getTwitterService().getDatabase().wipeUsers();
+                    App.getInstance(requireActivity()).getDatabase().wipeUsers();
                     return null;
                 }
 
@@ -97,7 +92,7 @@ public class MaintenanceActivity extends ActionBarYukariBase {
 
                 @Override
                 protected Void doInBackground(Void... params) {
-                    getTwitterService().getDatabase().vacuum();
+                    App.getInstance(requireContext()).getDatabase().vacuum();
                     return null;
                 }
 
@@ -114,7 +109,7 @@ public class MaintenanceActivity extends ActionBarYukariBase {
                 protected void onPostExecute(Void aVoid) {
                     super.onPostExecute(aVoid);
                     fragment.dismiss();
-                    onServiceConnected();
+                    reload();
                 }
             }.executeParallel();
         }
@@ -122,19 +117,18 @@ public class MaintenanceActivity extends ActionBarYukariBase {
         @Override
         public void onResume() {
             super.onResume();
-            if (isTwitterServiceBound()) {
-                onServiceConnected();
-            }
+            reload();
         }
 
         @Override
         public void onServiceConnected() {
-            binding.tvYdbUserEnt.setText(String.format("%d entries", getTwitterService().getDatabase().getUsersCursor().getCount()));
-            binding.tvYdbSize.setText(Formatter.formatFileSize(getActivity(), getActivity().getDatabasePath(CentralDatabase.DB_FILENAME).length()));
+            reload();
         }
 
-        @Override
-        public void onServiceDisconnected() {}
+        private void reload() {
+            binding.tvYdbUserEnt.setText(String.format("%d entries", App.getInstance(requireContext()).getDatabase().getUsersCursor().getCount()));
+            binding.tvYdbSize.setText(Formatter.formatFileSize(getActivity(), getActivity().getDatabasePath(CentralDatabase.DB_FILENAME).length()));
+        }
     }
 
     public static class SimpleProgressDialogFragment extends DialogFragment {

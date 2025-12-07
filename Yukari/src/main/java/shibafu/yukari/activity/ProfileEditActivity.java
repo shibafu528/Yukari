@@ -30,6 +30,7 @@ import shibafu.yukari.common.async.ThrowableTwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.fragment.PostProgressDialogFragment;
 import shibafu.yukari.database.AuthUserRecord;
+import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
 import twitter4j.User;
@@ -153,7 +154,7 @@ public class ProfileEditActivity extends ActionBarYukariBase {
                     @Override
                     protected ThrowableResult<Void> doInBackground(Void... params) {
                         try {
-                            Twitter twitter = getTwitterService().getTwitterOrThrow(userRecord);
+                            Twitter twitter = TwitterUtil.getTwitterOrThrow(getApplicationContext(), userRecord);
                             twitter.updateProfile(
                                     etName.getText().toString(),
                                     etWeb.getText().toString(),
@@ -234,7 +235,7 @@ public class ProfileEditActivity extends ActionBarYukariBase {
                 @Override
                 protected ThrowableResult<User> doInBackground(Void... params) {
                     try {
-                        Twitter twitter = getTwitterService().getTwitterOrThrow(userRecord);
+                        Twitter twitter = TwitterUtil.getTwitterOrThrow(getApplicationContext(), userRecord);
                         return new ThrowableResult<>(twitter.showUser(userRecord.NumericId));
                     } catch (TwitterException e) {
                         e.printStackTrace();
@@ -263,11 +264,6 @@ public class ProfileEditActivity extends ActionBarYukariBase {
             };
             currentTask.execute();
         }
-    }
-
-    @Override
-    public void onServiceDisconnected() {
-
     }
 
     public static class LoadDialogFragment extends DialogFragment {

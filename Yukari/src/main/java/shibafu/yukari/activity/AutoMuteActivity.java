@@ -22,10 +22,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
+import shibafu.yukari.core.App;
 import shibafu.yukari.database.AutoMuteConfig;
 import shibafu.yukari.databinding.DialogAutoMuteBinding;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
-import shibafu.yukari.service.TwitterService;
 
 import java.util.List;
 
@@ -70,11 +70,6 @@ public class AutoMuteActivity extends ActionBarYukariBase{
     @Override
     public void onServiceConnected() {
         findInnerFragment().reloadList();
-    }
-
-    @Override
-    public void onServiceDisconnected() {
-
     }
 
     public static class InnerFragment extends ListFragment implements
@@ -132,14 +127,13 @@ public class AutoMuteActivity extends ActionBarYukariBase{
         }
 
         public void updateAutoMuteConfig(AutoMuteConfig config) {
-            TwitterService twitterService = ((AutoMuteActivity) getActivity()).getTwitterService();
-            twitterService.getDatabase().updateRecord(config);
+            App.getInstance(requireContext()).getDatabase().updateRecord(config);
 
             reloadList();
         }
 
         public void reloadList() {
-            configs = ((AutoMuteActivity) getActivity()).getTwitterService().getDatabase().getRecords(AutoMuteConfig.class);
+            configs = App.getInstance(requireContext()).getDatabase().getRecords(AutoMuteConfig.class);
             setListAdapter(new Adapter(getActivity(), configs));
         }
 
@@ -149,8 +143,7 @@ public class AutoMuteActivity extends ActionBarYukariBase{
                 switch (requestCode) {
                     case DIALOG_DELETE:
                         if (deleteReserve != null) {
-                            TwitterService twitterService = ((AutoMuteActivity) getActivity()).getTwitterService();
-                            twitterService.getDatabase().deleteRecord(deleteReserve);
+                            App.getInstance(requireContext()).getDatabase().deleteRecord(deleteReserve);
                             reloadList();
                             Toast.makeText(getActivity(), "設定を削除しました", Toast.LENGTH_LONG).show();
                         }

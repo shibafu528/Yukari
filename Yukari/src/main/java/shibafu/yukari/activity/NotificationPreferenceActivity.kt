@@ -127,10 +127,6 @@ class NotificationPreferenceActivity : ActionBarYukariBase(), SharedPreferences.
         return super.onOptionsItemSelected(item)
     }
 
-    override fun onServiceConnected() {}
-
-    override fun onServiceDisconnected() {}
-
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
         if (key == "pref_notif_${notificationType}") {
             applyPreferenceToView()

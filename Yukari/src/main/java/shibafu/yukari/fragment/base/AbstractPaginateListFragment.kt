@@ -98,8 +98,6 @@ abstract class AbstractPaginateListFragment<T, PC : AbstractPaginateListFragment
         }
     }
 
-    override fun onServiceDisconnected() {}
-
     protected abstract fun createListAdapter(): ArrayAdapter<T>
 
     protected abstract fun onListItemClick(position: Int, item: T)

@@ -187,7 +187,7 @@ public class TwitterListTimelineFragment extends YukariBaseFragment implements S
         if (resultCode == Activity.RESULT_OK) {
             switch (requestCode) {
                 case REQUEST_SUBSCRIBE: {
-                    new ThrowableTwitterAsyncTask<Long, Boolean>(this) {
+                    new ThrowableTwitterAsyncTask<Long, Boolean>(requireContext()) {
 
                         @Override
                         protected void showToast(String message) {
@@ -217,7 +217,7 @@ public class TwitterListTimelineFragment extends YukariBaseFragment implements S
                     break;
                 }
                 case REQUEST_UNSUBSCRIBE: {
-                    new ThrowableTwitterAsyncTask<Long, Boolean>(this) {
+                    new ThrowableTwitterAsyncTask<Long, Boolean>(requireContext()) {
 
                         @Override
                         protected void showToast(String message) {
@@ -252,7 +252,7 @@ public class TwitterListTimelineFragment extends YukariBaseFragment implements S
 
     @Override
     public void onServiceConnected() {
-        new ThrowableTwitterAsyncTask<Void, Boolean>(this) {
+        new ThrowableTwitterAsyncTask<Void, Boolean>(requireContext()) {
             @Override
             protected void showToast(String message) {}
 
@@ -285,12 +285,9 @@ public class TwitterListTimelineFragment extends YukariBaseFragment implements S
     }
 
     @Override
-    public void onServiceDisconnected() {}
-
-    @Override
     public void onDialogChose(int requestCode, int which, Bundle extras) {
         if (requestCode == REQUEST_D_DELETE && which == DialogInterface.BUTTON_POSITIVE) {
-            new ThrowableTwitterAsyncTask<Long, Void>(this) {
+            new ThrowableTwitterAsyncTask<Long, Void>(requireContext()) {
 
                 @Override
                 protected void showToast(String message) {

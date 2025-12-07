@@ -107,8 +107,6 @@ abstract class AbstractUserListFragment<T : User, PC : AbstractUserListFragment.
         }
     }
 
-    override fun onServiceDisconnected() {}
-
     protected abstract suspend fun takeNextPageAsync(cursor: PC?): Deferred<Pair<List<T>, PC?>?>
 
     private fun takeNextPage(cursor: PC?) {

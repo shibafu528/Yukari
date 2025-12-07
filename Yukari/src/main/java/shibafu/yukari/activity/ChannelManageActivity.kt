@@ -16,11 +16,10 @@ import android.widget.TextView
 import shibafu.yukari.R
 import shibafu.yukari.activity.base.ActionBarYukariBase
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
+import shibafu.yukari.core.App
 import shibafu.yukari.database.CentralDatabase
 import shibafu.yukari.database.StreamChannelState
 import shibafu.yukari.linkage.StreamChannel
-import shibafu.yukari.service.TwitterServiceConnection
-import shibafu.yukari.service.TwitterServiceDelegate
 
 class ChannelManageActivity : ActionBarYukariBase() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,31 +48,18 @@ class ChannelManageActivity : ActionBarYukariBase() {
         return super.onOptionsItemSelected(item)
     }
 
-    override fun onServiceConnected() {
-        val fragment = supportFragmentManager.findFragmentByTag("list") as? ChannelListFragment
-        fragment?.onServiceConnected()
-    }
-
-    override fun onServiceDisconnected() {}
-
-    class ChannelListFragment : ListFragment(), TwitterServiceConnection.ServiceConnectionCallback {
-        private lateinit var serviceDelegate: TwitterServiceDelegate
-
-        override fun onAttach(context: Context) {
-            super.onAttach(context)
-            serviceDelegate = context as TwitterServiceDelegate
-        }
-
-        override fun onServiceConnected() {
+    class ChannelListFragment : ListFragment() {
+        override fun onStart() {
+            super.onStart()
             createList()
         }
 
-        override fun onServiceDisconnected() {}
-
         override fun onListItemClick(l: ListView, v: View, position: Int, id: Long) {
             val channel = listAdapter!!.getItem(position) as StreamChannel
-            val userRecord = serviceDelegate.twitterService.users.first { it == channel.userRecord }
-            val state = serviceDelegate.twitterService.database.getRecords(StreamChannelState::class.java,
+            val app = App.getInstance(requireContext())
+            val database = app.database
+            val userRecord = app.accountManager.users.first { it == channel.userRecord }
+            val state = database.getRecords(StreamChannelState::class.java,
                     CentralDatabase.COL_STREAM_CHANNEL_STATES_ACCOUNT_ID + " = ? AND " + CentralDatabase.COL_STREAM_CHANNEL_STATES_CHANNEL_ID + " = ?",
                     arrayOf(userRecord.InternalId.toString(), channel.channelId)).firstOrNull()
                     ?: StreamChannelState(userRecord.InternalId, channel.channelId, false)
@@ -84,12 +70,12 @@ class ChannelManageActivity : ActionBarYukariBase() {
                 channel.start()
                 state.isActive = true
             }
-            serviceDelegate.twitterService.database.updateRecord(state)
+            database.updateRecord(state)
             createList()
         }
 
         private fun createList() {
-            val channelList = serviceDelegate.twitterService.providerStreams
+            val channelList = App.getInstance(requireContext()).providerStreams
                     .flatMap { it?.channels ?: emptyList() }
                     .filter { it.allowUserControl }
 
