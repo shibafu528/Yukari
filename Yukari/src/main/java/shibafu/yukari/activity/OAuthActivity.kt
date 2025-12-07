@@ -52,11 +52,11 @@ class OAuthActivity : ActionBarYukariBase() {
         }
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
 
         val currentFragment = supportFragmentManager.findFragmentById(R.id.frame)
-        val data = intent?.data ?: return
+        val data = intent.data ?: return
         when (currentFragment) {
             is MastodonOAuthFragment -> {
                 //コールバック以外のintentが流れ込んで来たらエラー
