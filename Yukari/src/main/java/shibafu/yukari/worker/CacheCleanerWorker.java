@@ -1,4 +1,4 @@
-package shibafu.yukari.service;
+package shibafu.yukari.worker;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -29,7 +29,8 @@ import java.util.stream.Collectors;
 /**
  * Created by shibafu on 14/03/04.
  */
-public class CacheCleanerService extends Worker {
+public class CacheCleanerWorker extends Worker {
+    private static final String LOG_TAG = "CacheCleanerWorker";
     private static final String UNIQUE_WORK_NAME = "CACHE_CLEANER";
 
     private static final Comparator<File> COMPARATOR = (lhs, rhs) -> {
@@ -40,11 +41,11 @@ public class CacheCleanerService extends Worker {
     };
 
     public static void enqueueWork(Context context) {
-        OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(CacheCleanerService.class).build();
+        OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(CacheCleanerWorker.class).build();
         WorkManager.getInstance(context).enqueueUniqueWork(UNIQUE_WORK_NAME, ExistingWorkPolicy.KEEP, request);
     }
 
-    public CacheCleanerService(@NonNull Context context, @NonNull WorkerParameters workerParams) {
+    public CacheCleanerWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
     }
 
@@ -52,12 +53,12 @@ public class CacheCleanerService extends Worker {
     @Override
     public Result doWork() {
         try {
-            Log.d("CacheCleanerService", "Cleaning cache...");
+            Log.d(LOG_TAG, "Cleaning cache...");
             perform();
-            Log.d("CacheCleanerService", "Cleaning cache done.");
+            Log.d(LOG_TAG, "Cleaning cache done.");
             return Result.success();
         } catch (Exception e) {
-            Log.e("CacheCleanerService", "Failed to clean cache.", e);
+            Log.e(LOG_TAG, "Failed to clean cache.", e);
             return Result.failure();
         }
     }
@@ -94,7 +95,7 @@ public class CacheCleanerService extends Worker {
         }
 
         for (File f : expirations) {
-            Log.d("CacheCleanerService", "Deleting: " + f.getAbsolutePath());
+            Log.d(LOG_TAG, "Deleting: " + f.getAbsolutePath());
             f.delete();
         }
 
@@ -179,7 +180,7 @@ public class CacheCleanerService extends Worker {
             if (file.lastModified() < before1Day) {
                 String fileUri = Uri.fromFile(file).toString();
                 if (!usingUris.contains(fileUri)) {
-                    Log.d("CacheCleanerService", "Deleting: " + file.getAbsolutePath());
+                    Log.d(LOG_TAG, "Deleting: " + file.getAbsolutePath());
                     file.delete();
                 }
             }

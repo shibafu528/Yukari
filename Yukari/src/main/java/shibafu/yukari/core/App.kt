@@ -54,7 +54,7 @@ import shibafu.yukari.mastodon.DefaultVisibilityCache
 import shibafu.yukari.mastodon.FetchDefaultVisibilityTask
 import shibafu.yukari.mastodon.MastodonApi
 import shibafu.yukari.media2.Media
-import shibafu.yukari.service.CacheCleanerService
+import shibafu.yukari.worker.CacheCleanerWorker
 import shibafu.yukari.twitter.TwitterApi
 import shibafu.yukari.twitter.TwitterProvider
 import shibafu.yukari.util.CompatUtil
@@ -165,7 +165,7 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, StreamCol
                 statusLoader.cancelAll()
 
                 Log.d(LOG_TAG, "[onStop] enqueue cache cleaner service")
-                CacheCleanerService.enqueueWork(applicationContext)
+                CacheCleanerWorker.enqueueWork(applicationContext)
 
                 System.gc()
 
