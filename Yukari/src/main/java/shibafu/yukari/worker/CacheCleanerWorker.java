@@ -1,16 +1,20 @@
-package shibafu.yukari.service;
+package shibafu.yukari.worker;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import androidx.annotation.NonNull;
-import androidx.core.app.JobIntentService;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
+import androidx.work.Worker;
+import androidx.work.WorkerParameters;
+
 import android.text.format.DateUtils;
 import android.util.Log;
-import shibafu.yukari.common.JobSchedulerId;
+
 import shibafu.yukari.common.bitmapcache.BitmapCache;
 import shibafu.yukari.database.CentralDatabase;
 
@@ -25,7 +29,9 @@ import java.util.stream.Collectors;
 /**
  * Created by shibafu on 14/03/04.
  */
-public class CacheCleanerService extends JobIntentService {
+public class CacheCleanerWorker extends Worker {
+    private static final String LOG_TAG = "CacheCleanerWorker";
+    private static final String UNIQUE_WORK_NAME = "CACHE_CLEANER";
 
     private static final Comparator<File> COMPARATOR = (lhs, rhs) -> {
         long sub = rhs.lastModified() - lhs.lastModified();
@@ -35,18 +41,37 @@ public class CacheCleanerService extends JobIntentService {
     };
 
     public static void enqueueWork(Context context) {
-        enqueueWork(context, CacheCleanerService.class, JobSchedulerId.JOB_CACHE_CLEANER, new Intent());
+        OneTimeWorkRequest request = new OneTimeWorkRequest.Builder(CacheCleanerWorker.class).build();
+        WorkManager.getInstance(context).enqueueUniqueWork(UNIQUE_WORK_NAME, ExistingWorkPolicy.KEEP, request);
     }
 
+    public CacheCleanerWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
+        super(context, workerParams);
+    }
+
+    @NonNull
     @Override
-    protected void onHandleWork(@NonNull Intent intent) {
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+    public Result doWork() {
+        try {
+            Log.d(LOG_TAG, "Cleaning cache...");
+            perform();
+            Log.d(LOG_TAG, "Cleaning cache done.");
+            return Result.success();
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Failed to clean cache.", e);
+            return Result.failure();
+        }
+    }
+
+    private void perform() {
+        Context context = getApplicationContext();
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
         File cacheRoot;
         if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            cacheRoot = getExternalCacheDir();
+            cacheRoot = context.getExternalCacheDir();
         }
         else {
-            cacheRoot = getCacheDir();
+            cacheRoot = context.getCacheDir();
         }
         String[] categories = {
                 BitmapCache.PROFILE_ICON_CACHE,
@@ -61,7 +86,7 @@ public class CacheCleanerService extends JobIntentService {
         for (int i = 0; i < categories.length; ++i) {
             expirations.addAll(findExpirationCaches(new File(cacheRoot, categories[i]), limits[i] * 1024 * 1024));
         }
-        File[] tmpFiles = getExternalCacheDir().listFiles((dir, filename) -> filename.endsWith(".tmp"));
+        File[] tmpFiles = context.getExternalCacheDir().listFiles((dir, filename) -> filename.endsWith(".tmp"));
         long currentTimeMillis = System.currentTimeMillis();
         for (File tmpFile : tmpFiles) {
             if (tmpFile.lastModified() < currentTimeMillis - 86400000) {
@@ -70,7 +95,7 @@ public class CacheCleanerService extends JobIntentService {
         }
 
         for (File f : expirations) {
-            Log.d("CacheCleanerService", "Deleting: " + f.getAbsolutePath());
+            Log.d(LOG_TAG, "Deleting: " + f.getAbsolutePath());
             f.delete();
         }
 
@@ -123,7 +148,7 @@ public class CacheCleanerService extends JobIntentService {
             return;
         }
 
-        File attachesDir = new File(getExternalFilesDir(null), "attaches");
+        File attachesDir = new File(getApplicationContext().getExternalFilesDir(null), "attaches");
         if (!attachesDir.exists()) {
             return;
         }
@@ -155,7 +180,7 @@ public class CacheCleanerService extends JobIntentService {
             if (file.lastModified() < before1Day) {
                 String fileUri = Uri.fromFile(file).toString();
                 if (!usingUris.contains(fileUri)) {
-                    Log.d("CacheCleanerService", "Deleting: " + file.getAbsolutePath());
+                    Log.d(LOG_TAG, "Deleting: " + file.getAbsolutePath());
                     file.delete();
                 }
             }

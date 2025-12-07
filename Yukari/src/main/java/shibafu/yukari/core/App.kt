@@ -54,10 +54,9 @@ import shibafu.yukari.mastodon.DefaultVisibilityCache
 import shibafu.yukari.mastodon.FetchDefaultVisibilityTask
 import shibafu.yukari.mastodon.MastodonApi
 import shibafu.yukari.media2.Media
-import shibafu.yukari.service.CacheCleanerService
+import shibafu.yukari.worker.CacheCleanerWorker
 import shibafu.yukari.twitter.TwitterApi
 import shibafu.yukari.twitter.TwitterProvider
-import shibafu.yukari.util.CompatUtil
 
 /**
  * Created by shibafu on 2015/08/29.
@@ -155,23 +154,25 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, StreamCol
         localBroadcastManager.registerReceiver(userReloadListener, IntentFilter(AccountManager.ACTION_RELOADED_USERS))
 
         // ライフサイクルイベントのリスナー登録
-        val processLifecycleOwner = ProcessLifecycleOwner.get()
-        processLifecycleOwner.lifecycle.addObserver(object : DefaultLifecycleObserver {
-            override fun onStop(owner: LifecycleOwner) {
-                Log.d(LOG_TAG, "[onStop] start")
+        ProcessLifecycleOwner.get().also {
+            it.lifecycle.addObserver(object : DefaultLifecycleObserver {
+                override fun onStop(owner: LifecycleOwner) {
+                    Log.d(LOG_TAG, "[onStop] start")
 
-                // わざわざ止める必要もないという説はある
-                Log.d(LOG_TAG, "[onStop] cancel all status loader tasks")
-                statusLoader.cancelAll()
+                    // わざわざ止める必要もないという説はある
+                    Log.d(LOG_TAG, "[onStop] cancel all status loader tasks")
+                    statusLoader.cancelAll()
 
-                Log.d(LOG_TAG, "[onStop] enqueue cache cleaner service")
-                CacheCleanerService.enqueueWork(applicationContext)
+                    Log.d(LOG_TAG, "[onStop] enqueue cache cleaner service")
+                    CacheCleanerWorker.enqueueWork(applicationContext)
 
-                System.gc()
+                    System.gc()
 
-                Log.d(LOG_TAG, "[onStop] finished")
-            }
-        })
+                    Log.d(LOG_TAG, "[onStop] finished")
+                }
+            })
+            it.lifecycle.addObserver(streamManager)
+        }
 
         // API Providerの初期化
         providerApis.forEach { api ->
@@ -180,17 +181,6 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, StreamCol
 
         // 画像キャッシュの初期化
         BitmapCache.initialize(this)
-
-        if (CompatUtil.getProcessName() == packageName) {
-            processLifecycleOwner.lifecycle.addObserver(streamManager)
-
-            // Mastodon: default visibilityの取得
-            for (user in accountManager.users) {
-                if (user.Provider.apiType == Provider.API_MASTODON) {
-                    FetchDefaultVisibilityTask(this, defaultVisibilityCache, user).executeParallel()
-                }
-            }
-        }
     }
 
     override fun onTrimMemory(level: Int) {
