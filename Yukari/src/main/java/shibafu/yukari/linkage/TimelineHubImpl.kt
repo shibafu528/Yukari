@@ -222,19 +222,17 @@ class TimelineHubImpl(context: Context,
                     }
                 }
             }
+
+            // ハッシュタグのキャッシュ
+            status.tags.forEach { tag ->
+                hashCache.put("#$tag")
+            }
         }
 
         // キャッシュ登録
         putStatusCache(status)
 
         if (status is TwitterStatus) {
-            if (passive) {
-                // ハッシュタグのキャッシュ
-                status.status.hashtagEntities.forEach {
-                    hashCache.put("#" + it.text)
-                }
-            }
-
             // 引用ツイートのキャッシュ
             if (status.status.quotedStatus != null) {
                 val quotedStatus = TwitterStatus(status.status.quotedStatus, status.representUser)
