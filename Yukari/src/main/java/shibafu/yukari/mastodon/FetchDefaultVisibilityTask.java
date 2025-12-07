@@ -1,5 +1,7 @@
 package shibafu.yukari.mastodon;
 
+import android.util.Log;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.sys1yagi.mastodon4j.MastodonClient;
@@ -14,6 +16,8 @@ import shibafu.yukari.entity.StatusDraft;
 import shibafu.yukari.linkage.ApiCollectionProvider;
 
 public class FetchDefaultVisibilityTask extends SimpleAsyncTask {
+    private static final String LOG_TAG = "FetchDefaultVisibilityTask";
+
     private final ApiCollectionProvider apiCollectionProvider;
     private final DefaultVisibilityCache defaultVisibilityCache;
     private final AuthUserRecord aur;
@@ -28,6 +32,7 @@ public class FetchDefaultVisibilityTask extends SimpleAsyncTask {
     protected Void doInBackground(Void... voids) {
         MastodonClient client = (MastodonClient) apiCollectionProvider.getProviderApi(Provider.API_MASTODON).getApiClient(aur);
         try {
+            Log.d(LOG_TAG, String.format("[%d] Fetching", aur.InternalId));
             Response response = client.get("preferences", null, "v1");
             if (response.isSuccessful()) {
                 String body = response.body().string();
@@ -35,6 +40,7 @@ public class FetchDefaultVisibilityTask extends SimpleAsyncTask {
                 }.getType());
                 Object maybeVisibility = prefs.get("posting:default:visibility");
                 if (maybeVisibility instanceof String) {
+                    Log.d(LOG_TAG, String.format("[%d] posting:default:visibility => %s", aur.InternalId, maybeVisibility));
                     switch ((String) maybeVisibility) {
                         case "public":
                             defaultVisibilityCache.set(aur.ScreenName, StatusDraft.Visibility.PUBLIC);
