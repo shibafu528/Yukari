@@ -184,6 +184,7 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, StreamCol
         if (CompatUtil.getProcessName() == packageName) {
             processLifecycleOwner.lifecycle.addObserver(streamManager)
 
+            // TODO: これMainActivityの起動時に行うべき
             // Mastodon: default visibilityの取得
             for (user in accountManager.users) {
                 if (user.Provider.apiType == Provider.API_MASTODON) {

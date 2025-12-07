@@ -78,10 +78,6 @@
         </activity>
 
         <service android:name=".service.AsyncCommandService"/>
-        <service
-            android:name=".service.CacheCleanerService"
-            android:permission="android.permission.BIND_JOB_SERVICE"
-            android:process=":cleaner"/>
 
         <activity
             android:name="shibafu.yukari.activity.TweetActivity"
