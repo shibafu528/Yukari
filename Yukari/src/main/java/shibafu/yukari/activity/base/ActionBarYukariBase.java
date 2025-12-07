@@ -36,6 +36,9 @@ public abstract class ActionBarYukariBase extends AppCompatActivity {
         new Handler(Looper.getMainLooper()).post(this::onServiceConnected);
     }
 
+    /**
+     * @deprecated Implementations should move to {@link #onStart()}.
+     */
     @Deprecated
     public void onServiceConnected() {}
 

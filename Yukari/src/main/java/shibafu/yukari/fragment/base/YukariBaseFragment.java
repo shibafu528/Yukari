@@ -17,6 +17,9 @@ public abstract class YukariBaseFragment extends Fragment {
         new Handler(Looper.getMainLooper()).post(this::onServiceConnected);
     }
 
+    /**
+     * @deprecated Implementations should move to {@link #onStart()}.
+     */
     @Deprecated
     public void onServiceConnected() {}
 }
