@@ -499,8 +499,6 @@ open class TimelineFragment : ListYukariBaseFragment(),
         }
     }
 
-    override fun onServiceDisconnected() {}
-
     override fun onRefresh() {
         if (query.sources.isEmpty()) {
             swipeRefreshLayout?.isRefreshing = false

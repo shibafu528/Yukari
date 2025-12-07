@@ -87,10 +87,4 @@ public class QueryEditorActivity extends ActionBarYukariBase {
         int end = binding.etQuery.getSelectionEnd();
         binding.etQuery.getText().replace(Math.min(start, end), Math.max(start, end), text);
     }
-
-    @Override
-    public void onServiceConnected() {}
-
-    @Override
-    public void onServiceDisconnected() {}
 }

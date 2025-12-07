@@ -159,10 +159,6 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
 
     override fun onUserChanged(userRecord: AuthUserRecord?) {}
 
-    override fun onServiceConnected() {}
-
-    override fun onServiceDisconnected() {}
-
     private inner class RowAdapter(context: Context, objects: List<Row>) : ArrayAdapter<Row>(context, 0, objects) {
         private val inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
 

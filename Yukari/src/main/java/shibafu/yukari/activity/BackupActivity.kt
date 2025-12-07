@@ -152,10 +152,6 @@ class BackupActivity : ActionBarYukariBase(), SimpleAlertDialogFragment.OnDialog
         job.cancel()
     }
 
-    override fun onServiceConnected() {}
-
-    override fun onServiceDisconnected() {}
-
     override fun onDialogChose(requestCode: Int, which: Int, extras: Bundle?) {
         when (requestCode) {
             DIALOG_IMPORT_FINISHED -> {

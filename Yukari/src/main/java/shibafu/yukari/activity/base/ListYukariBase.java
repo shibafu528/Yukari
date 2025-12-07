@@ -29,16 +29,6 @@ public abstract class ListYukariBase extends ListActivity {
         new Handler(Looper.getMainLooper()).post(this::onServiceConnected);
     }
 
-    @SuppressWarnings("deprecation")
-    @Override
-    protected void onStop() {
-        super.onStop();
-        onServiceDisconnected();
-    }
-
     @Deprecated
     public void onServiceConnected() {}
-
-    @Deprecated
-    public void onServiceDisconnected() {}
 }

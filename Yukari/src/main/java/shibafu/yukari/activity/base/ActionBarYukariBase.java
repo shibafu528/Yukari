@@ -36,18 +36,8 @@ public abstract class ActionBarYukariBase extends AppCompatActivity {
         new Handler(Looper.getMainLooper()).post(this::onServiceConnected);
     }
 
-    @SuppressWarnings("deprecation")
-    @Override
-    protected void onStop() {
-        super.onStop();
-        onServiceDisconnected();
-    }
-
     @Deprecated
     public void onServiceConnected() {}
-
-    @Deprecated
-    public void onServiceDisconnected() {}
 
     protected boolean allowAutoTheme() {
         return true;

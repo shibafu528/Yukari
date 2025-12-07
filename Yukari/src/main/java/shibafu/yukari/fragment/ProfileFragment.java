@@ -715,11 +715,6 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
     }
 
     @Override
-    public void onServiceDisconnected() {
-
-    }
-
-    @Override
     public void onColorPicked(int color, String tag) {
         UserExtrasManager userExtrasManager = App.getInstance(requireContext()).getUserExtrasManager();
         if (userExtrasManager != null) {

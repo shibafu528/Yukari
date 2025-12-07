@@ -51,12 +51,6 @@ public class ConfigActivity extends ActionBarYukariBase {
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    public void onServiceConnected() {}
-
-    @Override
-    public void onServiceDisconnected() {}
-
     public static class InnerFragment extends PreferenceFragmentCompat implements SharedPreferences.OnSharedPreferenceChangeListener {
         public static InnerFragment newInstance(String category) {
             InnerFragment fragment = new InnerFragment();

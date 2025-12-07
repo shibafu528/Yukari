@@ -178,9 +178,6 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
         }
     }
 
-    @Override
-    public void onServiceDisconnected() {}
-
     @NonNull
     @Override
     public Status getStatus() {

@@ -35,12 +35,6 @@ public class MaintenanceActivity extends ActionBarYukariBase {
         }
     }
 
-    @Override
-    public void onServiceConnected() {}
-
-    @Override
-    public void onServiceDisconnected() {}
-
     public static class DBMaintenanceFragment extends YukariBaseFragment {
         private FragmentDbmtBinding binding;
 
@@ -130,9 +124,6 @@ public class MaintenanceActivity extends ActionBarYukariBase {
         public void onServiceConnected() {
             reload();
         }
-
-        @Override
-        public void onServiceDisconnected() {}
 
         private void reload() {
             binding.tvYdbUserEnt.setText(String.format("%d entries", App.getInstance(requireContext()).getDatabase().getUsersCursor().getCount()));

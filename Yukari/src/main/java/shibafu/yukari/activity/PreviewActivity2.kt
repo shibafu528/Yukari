@@ -263,10 +263,6 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
 
     override fun allowAutoTheme(): Boolean = false
 
-    override fun onServiceConnected() {}
-
-    override fun onServiceDisconnected() {}
-
     class PagerAdapter(fm: FragmentManager,
                        private val collection: Array<Uri>,
                        private val user: AuthUserRecord?) : FragmentStatePagerAdapter(fm) {

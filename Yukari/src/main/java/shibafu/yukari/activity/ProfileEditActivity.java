@@ -266,11 +266,6 @@ public class ProfileEditActivity extends ActionBarYukariBase {
         }
     }
 
-    @Override
-    public void onServiceDisconnected() {
-
-    }
-
     public static class LoadDialogFragment extends DialogFragment {
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {

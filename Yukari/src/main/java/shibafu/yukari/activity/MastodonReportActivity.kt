@@ -69,10 +69,6 @@ class MastodonReportActivity : ActionBarYukariBase() {
         }
     }
 
-    override fun onServiceConnected() {}
-
-    override fun onServiceDisconnected() {}
-
     private fun loadRules(userRecord: AuthUserRecord) {
         lifecycleScope.launch {
             if (model.loadingRules.value!!) {
@@ -266,10 +262,6 @@ class MastodonReportActivity : ActionBarYukariBase() {
             }
         }
 
-        override fun onServiceConnected() {}
-
-        override fun onServiceDisconnected() {}
-
         companion object {
             private const val REQUEST_CHANGE_ACCOUNT = 1
         }
@@ -318,10 +310,6 @@ class MastodonReportActivity : ActionBarYukariBase() {
                 ArrayList(selectedRules + rule)
             }
         }
-
-        override fun onServiceConnected() {}
-
-        override fun onServiceDisconnected() {}
 
         inner class RuleCheckListAdapter(context: Context, rules: List<Rule>) : ArrayAdapter<Rule>(context, 0, rules) {
             private val inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
@@ -411,9 +399,6 @@ class MastodonReportActivity : ActionBarYukariBase() {
                 }
             }
         }
-
-        override fun onServiceConnected() {}
-        override fun onServiceDisconnected() {}
     }
 
     companion object {

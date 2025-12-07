@@ -131,11 +131,6 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
         findInnerFragment().reloadList();
     }
 
-    @Override
-    public void onServiceDisconnected() {
-
-    }
-
     public static class InnerFragment extends ListFragment implements SimpleAlertDialogFragment.OnDialogChoseListener {
 
         private static final int DIALOG_CONFIRM = 1;

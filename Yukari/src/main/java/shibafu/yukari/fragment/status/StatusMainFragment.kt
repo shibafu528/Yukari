@@ -459,8 +459,6 @@ class StatusMainFragment : YukariBaseFragment(), StatusChildUI, SimpleAlertDialo
         onUserChanged(userRecord)
     }
 
-    override fun onServiceDisconnected() {}
-
     private fun replyToSender() {
         val userRecord = userRecord
 

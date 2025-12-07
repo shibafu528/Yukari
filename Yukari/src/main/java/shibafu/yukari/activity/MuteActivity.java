@@ -95,11 +95,6 @@ public class MuteActivity extends ActionBarYukariBase{
         findInnerFragment().reloadList();
     }
 
-    @Override
-    public void onServiceDisconnected() {
-
-    }
-
     public static class InnerFragment extends ListFragment implements
             SimpleAlertDialogFragment.OnDialogChoseListener {
 

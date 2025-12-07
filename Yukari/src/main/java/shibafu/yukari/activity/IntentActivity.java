@@ -137,11 +137,6 @@ public class IntentActivity extends ActionBarYukariBase {
         matchedWork.second.work(IntentActivity.this);
     }
 
-    @Override
-    public void onServiceDisconnected() {
-
-    }
-
     private class TweetLoaderTask extends ParallelAsyncTask<Long, Void, TwitterStatus> {
 
         private ProgressDialog currentDialog;

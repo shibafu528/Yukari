@@ -39,12 +39,6 @@ public class CommandsPrefActivity extends ActionBarYukariBase {
                 .commit();
     }
 
-    @Override
-    public void onServiceConnected() {}
-
-    @Override
-    public void onServiceDisconnected() {}
-
     public static class InnerFragment extends PreferenceFragmentCompat {
         private final Resource[] exportResources = {
                 new Resource(R.raw.y_reply, "Yukari - Yukari Reply.ogg"),
