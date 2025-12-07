@@ -64,8 +64,7 @@ java {
 
 android {
     namespace 'shibafu.yukari'
-    compileSdkVersion 33
-    compileSdkExtension 4
+    compileSdkVersion 36
 
     defaultConfig {
         applicationId "shibafu.yukari"
