@@ -75,7 +75,6 @@ import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.UsedHashes;
 import shibafu.yukari.common.async.SimpleAsyncTask;
-import shibafu.yukari.core.App;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.entity.InReplyToId;
 import shibafu.yukari.entity.Status;
@@ -507,6 +506,12 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                         @Override
                         protected Void doInBackground(Void... params) {
                             try {
+                                while (!isTwitterServiceBound()) {
+                                    try {
+                                        Thread.sleep(100);
+                                    } catch (InterruptedException ignore) {}
+                                }
+
                                 AuthUserRecord u;
                                 if (user == null) {
                                     if (writers.isEmpty()) {
@@ -518,7 +523,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                                     u = user;
                                 }
 
-                                final ProviderApi api = App.getInstance(getApplicationContext()).getProviderApi(u);
+                                final ProviderApi api = getTwitterService().getProviderApi(u);
                                 if (api == null) {
                                     return null;
                                 }
@@ -1285,9 +1290,9 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
         }
 
         validators.clear();
-        App app = App.getInstance(getApplicationContext());
+        TwitterService service = getTwitterService();
         for (AuthUserRecord writer : writers) {
-            ProviderApi api = app.getProviderApi(writer);
+            ProviderApi api = service.getProviderApi(writer);
             if (api != null) {
                 validators.add(api.getPostValidator(writer));
             }
@@ -1437,8 +1442,8 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
 
     @Override
     protected void onStop() {
-        if (useStoredWriters) {
-            App.getInstance(this).getAccountManager().setWriterUsers(writers);
+        if (useStoredWriters && isTwitterServiceBound() && getTwitterService() != null) {
+            getTwitterService().setWriterUsers(writers);
         }
         if (PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getBoolean("pref_save_tags", false)) {
             List<String> strings = EXTRACTOR.extractHashtags(etInput.getText().toString());
@@ -1703,7 +1708,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     @Override
     public void onServiceConnected() {
         if (useStoredWriters && writers.size() == 0) {
-            writers = App.getInstance(this).getAccountManager().getWriterUsers();
+            writers = getTwitterService().getWriterUsers();
             updateWritersView();
             initialDraft.setWriters(writers);
         }
@@ -1712,7 +1717,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                 setVisibility(StatusDraft.Visibility.PUBLIC.ordinal());
                 initialDraft.setVisibility(StatusDraft.Visibility.PUBLIC);
             } else {
-                DefaultVisibilityCache visibilityCache = App.getInstance(this).getDefaultVisibilityCache();
+                DefaultVisibilityCache visibilityCache = getTwitterService().getDefaultVisibilityCache();
                 String acct = null;
                 for (AuthUserRecord writer : writers) {
                     if (writer.Provider.getApiType() == Provider.API_MASTODON) {
@@ -1764,7 +1769,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
             case REQUEST_DIALOG_BACK:
                 switch (which) {
                     case DialogInterface.BUTTON_POSITIVE:
-                        App.getInstance(this).getDatabase().updateDraft(getTweetDraft());
+                        getTwitterService().getDatabase().updateDraft(getTweetDraft());
                     case DialogInterface.BUTTON_NEUTRAL:
                         finish();
                         break;
@@ -1791,7 +1796,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                             break;
                         case 1:
                             dialogFragment = SimpleListDialogFragment.newInstance(
-                                    REQUEST_DIALOG_HASH_VALUE, "TLで見かけたハッシュタグ", null, null, "キャンセル", App.getInstance(this).getHashCache().getAll(), null);
+                                    REQUEST_DIALOG_HASH_VALUE, "TLで見かけたハッシュタグ", null, null, "キャンセル", getTwitterService().getHashCache().getAll(), null);
                             break;
                         default:
                             return;
@@ -1810,7 +1815,7 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
                         if (TextUtils.isEmpty(etInput.getText()) && attachPictures.isEmpty()) {
                             Toast.makeText(TweetActivity.this, "なにも入力されていません", Toast.LENGTH_SHORT).show();
                         } else {
-                            App.getInstance(this).getDatabase().updateDraft(getTweetDraft());
+                            getTwitterService().getDatabase().updateDraft(getTweetDraft());
                             Toast.makeText(TweetActivity.this, "保存しました", Toast.LENGTH_SHORT).show();
                         }
                         break;

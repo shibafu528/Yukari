@@ -3,10 +3,13 @@ package shibafu.yukari.fragment.tabcontent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import shibafu.yukari.core.App
+import shibafu.yukari.database.Bookmark
 import shibafu.yukari.database.MuteConfig
 import shibafu.yukari.entity.Status
+import shibafu.yukari.util.getTwitterServiceAwait
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -43,19 +46,21 @@ class BookmarkTimelineFragment : TimelineFragment(), CoroutineScope {
     private fun loadBookmark() = launch {
         swipeRefreshLayout?.isRefreshing = true
 
-        val app = App.getInstance(requireContext())
-        val bookmarks = app.database.bookmarks
+        val bookmarks = async(Dispatchers.IO) {
+            val service = getTwitterServiceAwait() ?: return@async emptyList<Bookmark>()
+            service.database.bookmarks
+        }.await()
 
         // はい、調子乗ってブクマ見るやろ お前ほんまに覚えとけよ ガチで消したるからな
         // ほんまにキレタ 絶対許さん お前のID控えたからな
         val shownIds = statuses.map(Status::id).toMutableList()
         val mutedIds = mutedStatuses.map(Status::id).toMutableList()
 
-        val suppressor = app.suppressor
+        val suppressor = twitterService.suppressor
 
         var mute: BooleanArray
         bookmarks.forEach { status ->
-            status.setRepresentIfOwned(app.accountManager.users)
+            status.setRepresentIfOwned(twitterService.users)
             if (!status.isOwnedStatus()) {
                 // 優先アカウント設定が存在するか？
                 val priorityAccount = App.getInstance(requireContext()).userExtrasManager.userExtras.firstOrNull { it.id == status.originStatus.user.identicalUrl }?.priorityAccount

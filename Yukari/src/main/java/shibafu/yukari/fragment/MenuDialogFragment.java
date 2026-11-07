@@ -2,7 +2,6 @@ package shibafu.yukari.fragment;
 
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -29,11 +28,12 @@ import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.async.ParallelAsyncTask;
 import shibafu.yukari.common.async.SimpleAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
-import shibafu.yukari.core.App;
 import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.databinding.DialogMenuBinding;
 import shibafu.yukari.linkage.ProviderStream;
 import shibafu.yukari.linkage.StreamChannel;
+import shibafu.yukari.service.TwitterService;
+import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.util.AttrUtil;
 
 /**
@@ -83,7 +83,18 @@ public class MenuDialogFragment extends DialogFragment {
         class AccountsLoader extends SimpleAsyncTask {
             @Override
             protected Void doInBackground(Void... params) {
-                final ProviderStream[] streams = App.getInstance(requireContext()).getProviderStreams();
+                MainActivity activity = (MainActivity) getActivity();
+                if (activity == null) {
+                    return null;
+                }
+                while (!activity.isTwitterServiceBound()) {
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException ignored) {
+                    }
+                }
+
+                final ProviderStream[] streams = activity.getTwitterService().getProviderStreams();
                 ArrayList<AuthUserRecord> actives = new ArrayList<>();
                 for (ProviderStream stream : streams) {
                     if (stream != null) {
@@ -175,7 +186,7 @@ public class MenuDialogFragment extends DialogFragment {
             Toast.makeText(getActivity(), "再接続します...", Toast.LENGTH_LONG).show();
             dismiss();
             AsyncReconnectTask task = new AsyncReconnectTask();
-            task.executeParallel(requireContext());
+            task.executeParallel(((TwitterServiceDelegate) getActivity()).getTwitterService());
         });
 
         return binding.getRoot();
@@ -202,10 +213,10 @@ public class MenuDialogFragment extends DialogFragment {
         }
     }
 
-    private static class AsyncReconnectTask extends ParallelAsyncTask<Context, Void, Void> {
+    private static class AsyncReconnectTask extends ParallelAsyncTask<TwitterService, Void, Void> {
         @Override
-        protected Void doInBackground(Context... context) {
-            App.getInstance(context[0]).reconnectStreamChannels();
+        protected Void doInBackground(TwitterService... twitterServices) {
+            twitterServices[0].reconnectStreamChannels();
             return null;
         }
     }

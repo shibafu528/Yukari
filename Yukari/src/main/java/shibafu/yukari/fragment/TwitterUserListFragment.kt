@@ -5,7 +5,6 @@ import android.os.Handler
 import android.os.Looper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
-import shibafu.yukari.core.App
 import shibafu.yukari.fragment.base.AbstractUserListFragment
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.twitter.entity.TwitterUser
@@ -34,7 +33,9 @@ class TwitterUserListFragment : AbstractUserListFragment<TwitterUser, TwitterUse
 
     override suspend fun takeNextPageAsync(cursor: PageCursor?) = async(Dispatchers.IO) {
         try {
-            val api = App.getInstance(requireContext()).getProviderApi(currentUser) ?: return@async null
+            val service = getTwitterServiceAwait() ?: return@async null
+
+            val api = service.getProviderApi(currentUser) ?: return@async null
             val twitter = api.getApiClient(currentUser) as? Twitter ?: return@async null
 
             var nextCursor = cursor

@@ -28,7 +28,6 @@ import com.sys1yagi.mastodon4j.api.method.Apps
 import shibafu.yukari.R
 import shibafu.yukari.activity.base.ActionBarYukariBase
 import shibafu.yukari.common.async.ParallelAsyncTask
-import shibafu.yukari.core.App
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.database.Provider
 import shibafu.yukari.databinding.FragmentOauthSuccessBinding
@@ -151,7 +150,8 @@ class OAuthActivity : ActionBarYukariBase() {
                 tilInstanceHostName.error = ""
 
                 // 登録済Providerか？
-                val provider = App.getInstance(requireContext()).database.getRecords(Provider::class.java)
+                val activity = activity as OAuthActivity
+                val provider = activity.twitterService.database.getRecords(Provider::class.java)
                         .find { it.apiType == Provider.API_MASTODON && it.host == instanceHostName }
                 if (provider == null) {
                     // 未登録Provider -> アプリ登録から
@@ -196,7 +196,13 @@ class OAuthActivity : ActionBarYukariBase() {
                 var dialog: LoadDialogFragment? = null
 
                 override fun doInBackground(vararg params: Void?): AppRegistration? {
-                    val client = (App.getInstance(requireContext()).getProviderApi(Provider.API_MASTODON) as MastodonApi).getApiClient(instanceHostName, null)
+                    while (!activity.isTwitterServiceBound) {
+                        try {
+                            Thread.sleep(50)
+                        } catch (e: InterruptedException) {}
+                    }
+
+                    val client = (activity.twitterService.getProviderApi(Provider.API_MASTODON) as MastodonApi).getApiClient(instanceHostName, null)
                     val apps = Apps(client)
                     try {
                         return apps.createApp(getString(R.string.app_name),
@@ -221,9 +227,8 @@ class OAuthActivity : ActionBarYukariBase() {
 
                     if (result != null) {
                         val provider = Provider(instanceHostName, instanceHostName, Provider.API_MASTODON, result.clientId, result.clientSecret)
-                        val database = App.getInstance(requireContext()).database
-                        database.updateRecord(provider)
-                        val registeredProvider = database.getRecords(Provider::class.java).first { it.apiType == Provider.API_MASTODON && it.host == instanceHostName}
+                        activity.twitterService.database.updateRecord(provider)
+                        val registeredProvider = activity.twitterService.database.getRecords(Provider::class.java).first { it.apiType == Provider.API_MASTODON && it.host == instanceHostName}
                         startAuthorize(registeredProvider)
                     } else {
                         tilInstanceHostName.error = "アプリの登録中にエラーが発生しました\nインスタンス名が正確であること、サーバがダウンしていないことを確認してください"
@@ -240,7 +245,13 @@ class OAuthActivity : ActionBarYukariBase() {
                 var dialog: LoadDialogFragment? = null
 
                 override fun doInBackground(vararg params: Void?): String? {
-                    val client = (App.getInstance(requireContext()).getProviderApi(Provider.API_MASTODON) as MastodonApi).getApiClient(provider.host, null)
+                    while (!activity.isTwitterServiceBound) {
+                        try {
+                            Thread.sleep(50)
+                        } catch (e: InterruptedException) {}
+                    }
+
+                    val client = (activity.twitterService.getProviderApi(Provider.API_MASTODON) as MastodonApi).getApiClient(provider.host, null)
                     return Apps(client).getOAuthUrl(provider.consumerKey, Scope(Scope.Name.ALL), MASTODON_CALLBACK_URL)
                 }
 
@@ -268,8 +279,13 @@ class OAuthActivity : ActionBarYukariBase() {
                 var dialog: LoadDialogFragment? = null
 
                 override fun doInBackground(vararg params: Void?): Pair<MastodonAccessToken, Account>? {
-                    val app = App.getInstance(requireContext())
-                    val client = (app.getProviderApi(Provider.API_MASTODON) as MastodonApi).getApiClient(provider.host, null)
+                    while (!activity.isTwitterServiceBound) {
+                        try {
+                            Thread.sleep(50)
+                        } catch (e: InterruptedException) {}
+                    }
+
+                    val client = (activity.twitterService.getProviderApi(Provider.API_MASTODON) as MastodonApi).getApiClient(provider.host, null)
                     val apps = Apps(client)
                     try {
                         val accessToken = apps.getAccessToken(provider.consumerKey,
@@ -277,7 +293,7 @@ class OAuthActivity : ActionBarYukariBase() {
                                 MASTODON_CALLBACK_URL,
                                 authorizeCode).execute()
 
-                        val newClient = (app.getProviderApi(Provider.API_MASTODON) as MastodonApi).getApiClient(provider.host, accessToken.accessToken)
+                        val newClient = (activity.twitterService.getProviderApi(Provider.API_MASTODON) as MastodonApi).getApiClient(provider.host, accessToken.accessToken)
                         val credentials = Accounts(newClient).getVerifyCredentials().execute()
 
                         return accessToken to credentials
@@ -298,19 +314,18 @@ class OAuthActivity : ActionBarYukariBase() {
 
                     if (pair != null) {
                         val (accessToken, account) = pair
-                        val app = App.getInstance(requireContext())
-                        val am = app.accountManager
+                        val service = activity.twitterService
 
                         // ユーザ情報を保存
                         val userRecord = AuthUserRecord(accessToken, account, provider)
-                        val existsPrimary = am.users.any {
+                        val existsPrimary = service.users.any {
                             it.isPrimary && it.Provider != userRecord.Provider || it.NumericId != userRecord.NumericId
                         }
                         userRecord.isPrimary = !existsPrimary
                         userRecord.Name = account.displayName
                         userRecord.ProfileImageUrl = account.avatar
-                        app.database.addAccount(userRecord)
-                        am.reloadUsers()
+                        service.database.addAccount(userRecord)
+                        service.reloadUsers()
 
                         activity.supportFragmentManager.popBackStackImmediate()
                         activity.supportFragmentManager.commit {

@@ -38,7 +38,6 @@ import shibafu.yukari.media2.Media
 import shibafu.yukari.media2.MediaFactory
 import shibafu.yukari.service.TwitterService
 import shibafu.yukari.service.TwitterServiceDelegate
-import shibafu.yukari.twitter.TwitterUtil
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.util.StringUtil
 import shibafu.yukari.util.getTwitterServiceAwait
@@ -396,8 +395,9 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
                         }
                     } else if (isDMImage(url)) { // DM添付画像 (Twitter)
                         putDebugLog("[PreviewActivity2] load from Twitter DM")
+                        val service = getTwitterServiceAwait() ?: return@async null
                         input = try {
-                            val twitter: Twitter = TwitterUtil.getTwitterOrThrow(context, user)
+                            val twitter: Twitter = service.getTwitterOrThrow(user)
                             twitter.getDMImageAsStream(url)
                         } catch (e: TwitterException) {
                             e.printStackTrace()

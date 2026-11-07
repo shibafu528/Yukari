@@ -13,7 +13,6 @@ import androidx.fragment.app.DialogFragment;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.async.SimpleAsyncTask;
-import shibafu.yukari.core.App;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.databinding.FragmentDbmtBinding;
 import shibafu.yukari.fragment.base.YukariBaseFragment;
@@ -69,7 +68,7 @@ public class MaintenanceActivity extends ActionBarYukariBase {
 
                 @Override
                 protected Void doInBackground(Void... params) {
-                    App.getInstance(requireActivity()).getDatabase().wipeUsers();
+                    getTwitterService().getDatabase().wipeUsers();
                     return null;
                 }
 
@@ -98,7 +97,7 @@ public class MaintenanceActivity extends ActionBarYukariBase {
 
                 @Override
                 protected Void doInBackground(Void... params) {
-                    App.getInstance(requireContext()).getDatabase().vacuum();
+                    getTwitterService().getDatabase().vacuum();
                     return null;
                 }
 
@@ -130,7 +129,7 @@ public class MaintenanceActivity extends ActionBarYukariBase {
 
         @Override
         public void onServiceConnected() {
-            binding.tvYdbUserEnt.setText(String.format("%d entries", App.getInstance(requireContext()).getDatabase().getUsersCursor().getCount()));
+            binding.tvYdbUserEnt.setText(String.format("%d entries", getTwitterService().getDatabase().getUsersCursor().getCount()));
             binding.tvYdbSize.setText(Formatter.formatFileSize(getActivity(), getActivity().getDatabasePath(CentralDatabase.DB_FILENAME).length()));
         }
 

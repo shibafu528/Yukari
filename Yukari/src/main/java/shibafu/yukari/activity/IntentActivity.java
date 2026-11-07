@@ -10,14 +10,11 @@ import android.widget.Toast;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.async.ParallelAsyncTask;
-import shibafu.yukari.core.App;
-import shibafu.yukari.database.AccountManager;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.entity.StatusDraft;
 import shibafu.yukari.service.PostService;
 import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.database.AuthUserRecord;
-import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.entity.TwitterStatus;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -120,20 +117,19 @@ public class IntentActivity extends ActionBarYukariBase {
 
     @Override
     public void onServiceConnected() {
-        App app = App.getInstance(this);
-        AccountManager am = app.getAccountManager();
+        TwitterService service = getTwitterService();
 
         // 使えそうなTwitterアカウントを探す
-        twitterUser = am.getPrimaryUser();
+        twitterUser = service.getPrimaryUser();
         if (twitterUser == null || twitterUser.Provider.getApiType() != Provider.API_TWITTER) {
-            for (AuthUserRecord user : am.getUsers()) {
+            for (AuthUserRecord user : service.getUsers()) {
                 if (user.InternalId != twitterUser.InternalId && user.Provider.getApiType() == Provider.API_TWITTER) {
                     twitterUser = user;
                     break;
                 }
             }
         }
-        twitter = TwitterUtil.getTwitter(this, twitterUser);
+        twitter = service.getTwitter(twitterUser);
 
         matchedWork.second.work(IntentActivity.this);
     }

@@ -15,7 +15,6 @@ import android.widget.TextView;
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ListYukariBase;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
-import shibafu.yukari.core.App;
 import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.util.ThemeUtil;
 
@@ -116,7 +115,7 @@ public class AccountChooserActivity extends ListYukariBase {
     }
 
     private void createList() {
-        List<AuthUserRecord> users = App.getInstance(this).getAccountManager().getUsers();
+        List<AuthUserRecord> users = getTwitterService().getUsers();
         dataList.clear();
         boolean isSelected;
         for (AuthUserRecord userRecord : users) {
@@ -161,7 +160,7 @@ public class AccountChooserActivity extends ListYukariBase {
 
     @Override
     public void onServiceConnected() {
-        List<AuthUserRecord> users = App.getInstance(this).getAccountManager().getUsers();
+        List<AuthUserRecord> users = getTwitterService().getUsers();
         if (isFilterConsumerOverrode && !AuthUserRecord.canUseDissonanceFunctions(users)) {
             setResult(RESULT_CANCELED);
             finish();
