@@ -1,6 +1,6 @@
 package shibafu.yukari.linkage
 
-import android.content.Context
+import shibafu.yukari.service.TwitterService
 import shibafu.yukari.database.AuthUserRecord
 
 /**
@@ -9,7 +9,7 @@ import shibafu.yukari.database.AuthUserRecord
 interface ProviderStream {
     val channels: List<StreamChannel>
 
-    fun onCreate(context: Context)
+    fun onCreate(service: TwitterService)
     fun onStart()
     fun onDestroy()
 

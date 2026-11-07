@@ -18,7 +18,6 @@ import shibafu.yukari.database.CentralDatabase
 import shibafu.yukari.database.Provider
 import shibafu.yukari.database.StreamChannelState
 import shibafu.yukari.linkage.ProviderStream
-import shibafu.yukari.linkage.SteamConnectivityIntents
 import shibafu.yukari.linkage.StreamChannel
 import shibafu.yukari.linkage.TimelineHub
 import shibafu.yukari.mastodon.entity.DonNotification
@@ -32,18 +31,18 @@ class MastodonStream : ProviderStream {
     override var channels: List<StreamChannel> = emptyList()
         private set
 
-    private lateinit var app: App
+    private lateinit var service: TwitterService
     private lateinit var streamClientManager: StreamClientManager
 
-    override fun onCreate(context: Context) {
+    override fun onCreate(service: TwitterService) {
         Log.d(LOG_TAG, "onCreate")
 
-        this.app = App.getInstance(context)
+        this.service = service
 
-        val enforceLegacy = context.defaultSharedPreferences.getBoolean("pref_mastodon_enforce_legacy_stream_client", false)
-        this.streamClientManager = StreamClientManager(App.getInstance(context.applicationContext).okhttpClient.newBuilder(), enforceLegacy)
+        val enforceLegacy = service.defaultSharedPreferences.getBoolean("pref_mastodon_enforce_legacy_stream_client", false)
+        this.streamClientManager = StreamClientManager(App.getInstance(service.applicationContext).okhttpClient.newBuilder(), enforceLegacy)
 
-        app.accountManager.users.forEach { user ->
+        service.users.forEach { user ->
             if (user.Provider.apiType == Provider.API_MASTODON) {
                 addUser(user)
             }
@@ -53,7 +52,7 @@ class MastodonStream : ProviderStream {
     override fun onStart() {
         Log.d(LOG_TAG, "onStart")
 
-        val channelStates = app.database.getRecords(StreamChannelState::class.java)
+        val channelStates = service.database.getRecords(StreamChannelState::class.java)
         channels.forEach { ch ->
             if (!ch.isRunning) {
                 val state = channelStates.firstOrNull { it.accountId == ch.userRecord.InternalId && it.channelId == ch.channelId }
@@ -80,9 +79,9 @@ class MastodonStream : ProviderStream {
         }
 
         val ch = listOf(
-                UserStreamChannel(app, userRecord, streamClientManager),
-                LocalStreamChannel(app, userRecord, streamClientManager),
-                PublicStreamChannel(app, userRecord, streamClientManager)
+                UserStreamChannel(service, userRecord, streamClientManager),
+                LocalStreamChannel(service, userRecord, streamClientManager),
+                PublicStreamChannel(service, userRecord, streamClientManager)
         )
         channels += ch
         return ch
@@ -105,12 +104,12 @@ class MastodonStream : ProviderStream {
             return
         }
 
-        val ch = HashTagStreamChannel(app, userRecord, streamClientManager, tag, scope)
+        val ch = HashTagStreamChannel(service, userRecord, streamClientManager, tag, scope)
         ch.start()
         channels += ch
 
         android.os.Handler(Looper.getMainLooper()).post {
-            Toast.makeText(app, "Start HashTagStream:$tag", Toast.LENGTH_SHORT).show()
+            Toast.makeText(service.applicationContext, "Start HashTagStream:$tag", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -120,7 +119,7 @@ class MastodonStream : ProviderStream {
         channels -= ch
 
         android.os.Handler(Looper.getMainLooper()).post {
-            Toast.makeText(app, "Stop HashTagStream:$tag", Toast.LENGTH_SHORT).show()
+            Toast.makeText(service.applicationContext, "Stop HashTagStream:$tag", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -139,7 +138,7 @@ class MastodonStream : ProviderStream {
     }
 }
 
-private class UserStreamChannel(private val app: App, override val userRecord: AuthUserRecord, private val streamClientManager: StreamClientManager) : StreamChannel {
+private class UserStreamChannel(private val service: TwitterService, override val userRecord: AuthUserRecord, private val streamClientManager: StreamClientManager) : StreamChannel {
     override val channelId: String = "/user"
     override val channelName: String = "ホームTLと通知 (/user)"
     override val allowUserControl: Boolean = true
@@ -147,7 +146,7 @@ private class UserStreamChannel(private val app: App, override val userRecord: A
         private set
 
     private var clientRef: StreamClientManager.Ref? = null
-    private val listener: StreamListener = Listener(MastodonStream.USER_STREAM_ID, channelId, app, app.database, app.timelineHub, userRecord)
+    private val listener: StreamListener = Listener(MastodonStream.USER_STREAM_ID, channelId, service.applicationContext, service.database, service.timelineHub, userRecord)
     private val subscription = Subscription("user", listener)
 
     override fun start() {
@@ -168,7 +167,7 @@ private class UserStreamChannel(private val app: App, override val userRecord: A
     }
 }
 
-private class PublicStreamChannel(private val app: App, override val userRecord: AuthUserRecord, private val streamClientManager: StreamClientManager) : StreamChannel {
+private class PublicStreamChannel(private val service: TwitterService, override val userRecord: AuthUserRecord, private val streamClientManager: StreamClientManager) : StreamChannel {
     override val channelId: String = "/public"
     override val channelName: String = "連合TL (/public)"
     override val allowUserControl: Boolean = true
@@ -176,7 +175,7 @@ private class PublicStreamChannel(private val app: App, override val userRecord:
         private set
 
     private var clientRef: StreamClientManager.Ref? = null
-    private val listener: StreamListener = Listener(MastodonStream.PUBLIC_STREAM_ID, channelId, app, app.database, app.timelineHub, userRecord)
+    private val listener: StreamListener = Listener(MastodonStream.PUBLIC_STREAM_ID, channelId, service.applicationContext, service.database, service.timelineHub, userRecord)
     private val subscription = Subscription("public", listener)
 
     override fun start() {
@@ -197,7 +196,7 @@ private class PublicStreamChannel(private val app: App, override val userRecord:
     }
 }
 
-private class LocalStreamChannel(private val app: App, override val userRecord: AuthUserRecord, private val streamClientManager: StreamClientManager) : StreamChannel {
+private class LocalStreamChannel(private val service: TwitterService, override val userRecord: AuthUserRecord, private val streamClientManager: StreamClientManager) : StreamChannel {
     override val channelId: String = "/public/local"
     override val channelName: String = "ローカルTL (/public/local)"
     override val allowUserControl: Boolean = true
@@ -205,7 +204,7 @@ private class LocalStreamChannel(private val app: App, override val userRecord: 
         private set
 
     private var clientRef: StreamClientManager.Ref? = null
-    private val listener: StreamListener = Listener(MastodonStream.LOCAL_STREAM_ID, channelId, app, app.database, app.timelineHub, userRecord)
+    private val listener: StreamListener = Listener(MastodonStream.LOCAL_STREAM_ID, channelId, service.applicationContext, service.database, service.timelineHub, userRecord)
     private val subscription = Subscription("public:local", listener)
 
     override fun start() {
@@ -226,7 +225,7 @@ private class LocalStreamChannel(private val app: App, override val userRecord: 
     }
 }
 
-private class HashTagStreamChannel(private val app: App,
+private class HashTagStreamChannel(private val service: TwitterService,
                                    override val userRecord: AuthUserRecord,
                                    private val streamClientManager: StreamClientManager,
                                    val tag: String,
@@ -238,7 +237,7 @@ private class HashTagStreamChannel(private val app: App,
         private set
 
     private var clientRef: StreamClientManager.Ref? = null
-    private val listener: StreamListener = Listener(MastodonStream.HASHTAG_STREAM_ID, channelId, app, app.database, app.timelineHub, userRecord)
+    private val listener: StreamListener = Listener(MastodonStream.HASHTAG_STREAM_ID, channelId, service.applicationContext, service.database, service.timelineHub, userRecord)
     private val subscription = when (scope) {
         MastodonStream.Scope.FEDERATED -> Subscription("hashtag", listener, tag = tag)
         MastodonStream.Scope.LOCAL -> Subscription("hashtag:local", listener, tag = tag)
@@ -295,16 +294,31 @@ private class Listener(private val timelineId: String,
 
     override fun onOpen() {
         putDebugLog("$timelineId@${userRecord.ScreenName}: Stream connected.")
-        SteamConnectivityIntents.Connected(userRecord, channelId, displayTimelineId).sendBroadcast(context)
+        context.sendBroadcast(Intent().apply {
+            action = TwitterService.ACTION_STREAM_CONNECTED
+            putExtra(TwitterService.EXTRA_USER, userRecord)
+            putExtra(TwitterService.EXTRA_CHANNEL_ID, channelId)
+            putExtra(TwitterService.EXTRA_CHANNEL_NAME, displayTimelineId)
+        })
     }
 
     override fun onClosed() {
         putDebugLog("$timelineId@${userRecord.ScreenName}: Stream closed.")
-        SteamConnectivityIntents.Disconnected(userRecord, channelId, displayTimelineId).sendBroadcast(context)
+        context.sendBroadcast(Intent().apply {
+            action = TwitterService.ACTION_STREAM_DISCONNECTED
+            putExtra(TwitterService.EXTRA_USER, userRecord)
+            putExtra(TwitterService.EXTRA_CHANNEL_ID, channelId)
+            putExtra(TwitterService.EXTRA_CHANNEL_NAME, displayTimelineId)
+        })
     }
 
     override fun onFailure(t: Throwable, response: Response?) {
         putDebugLog("$timelineId@${userRecord.ScreenName}: Stream disconnected with error.")
-        SteamConnectivityIntents.Disconnected(userRecord, channelId, displayTimelineId).sendBroadcast(context)
+        context.sendBroadcast(Intent().apply {
+            action = TwitterService.ACTION_STREAM_DISCONNECTED
+            putExtra(TwitterService.EXTRA_USER, userRecord)
+            putExtra(TwitterService.EXTRA_CHANNEL_ID, channelId)
+            putExtra(TwitterService.EXTRA_CHANNEL_NAME, displayTimelineId)
+        })
     }
 }
