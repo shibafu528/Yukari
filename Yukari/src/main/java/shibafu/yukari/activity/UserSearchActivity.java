@@ -151,6 +151,16 @@ public class UserSearchActivity extends ActionBarYukariBase {
         return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    public void onServiceConnected() {
+
+    }
+
+    @Override
+    public void onServiceDisconnected() {
+
+    }
+
     @Nullable
     private AuthUserRecord getPreferredUser() {
         AccountManager am = App.getInstance(this).getAccountManager();

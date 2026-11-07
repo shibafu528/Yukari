@@ -28,4 +28,10 @@ public class LicenseActivity extends ActionBarYukariBase {
         }
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    public void onServiceConnected() {}
+
+    @Override
+    public void onServiceDisconnected() {}
 }

@@ -114,6 +114,16 @@ public class AboutActivity extends ActionBarYukariBase {
         view.onResume();
     }
 
+    @Override
+    public void onServiceConnected() {
+
+    }
+
+    @Override
+    public void onServiceDisconnected() {
+
+    }
+
     private class Renderer implements GLSurfaceView.Renderer {
         private FPSManager fpsManager = new FPSManager(30);
         private boolean skipFrame;

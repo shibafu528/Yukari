@@ -85,6 +85,12 @@ class OAuthActivity : ActionBarYukariBase() {
         super.onBackPressed()
     }
 
+    override fun onServiceConnected() {
+        Log.d("OAuthActivity", "Bound Service.")
+    }
+
+    override fun onServiceDisconnected() {}
+
     class ProviderChooserFragment : ListFragment() {
         private lateinit var adapter: ArrayAdapter<Option>
 

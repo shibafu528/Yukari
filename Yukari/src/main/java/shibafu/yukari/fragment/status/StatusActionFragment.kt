@@ -208,6 +208,10 @@ class StatusActionFragment : ListYukariBaseFragment(), AdapterView.OnItemClickLi
 
     override fun onUserChanged(userRecord: AuthUserRecord?) {}
 
+    override fun onServiceConnected() {}
+
+    override fun onServiceDisconnected() {}
+
     /**
      * リストアップするコマンドのインターフェース
      */

@@ -285,6 +285,9 @@ public class TwitterListTimelineFragment extends YukariBaseFragment implements S
     }
 
     @Override
+    public void onServiceDisconnected() {}
+
+    @Override
     public void onDialogChose(int requestCode, int which, Bundle extras) {
         if (requestCode == REQUEST_D_DELETE && which == DialogInterface.BUTTON_POSITIVE) {
             new ThrowableTwitterAsyncTask<Long, Void>(requireContext()) {

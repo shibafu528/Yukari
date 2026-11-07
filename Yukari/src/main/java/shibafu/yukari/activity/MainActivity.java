@@ -936,6 +936,9 @@ public class MainActivity extends ActionBarYukariBase implements SearchDialogFra
         }
     }
 
+    @Override
+    public void onServiceDisconnected() {}
+
     class TabPagerAdapter extends FragmentStatePagerAdapter {
 
         public TabPagerAdapter(FragmentManager fm) {

@@ -179,6 +179,11 @@ public class AccountChooserActivity extends ListYukariBase {
         }
     }
 
+    @Override
+    public void onServiceDisconnected() {
+
+    }
+
     private static class Data {
         final AuthUserRecord record;
         final String name;

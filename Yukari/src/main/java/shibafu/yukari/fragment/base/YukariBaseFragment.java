@@ -17,6 +17,16 @@ public abstract class YukariBaseFragment extends Fragment {
         new Handler(Looper.getMainLooper()).post(this::onServiceConnected);
     }
 
+    @SuppressWarnings("deprecation")
+    @Override
+    public void onStop() {
+        super.onStop();
+        onServiceDisconnected();
+    }
+
     @Deprecated
     public void onServiceConnected() {}
+
+    @Deprecated
+    public void onServiceDisconnected() {}
 }

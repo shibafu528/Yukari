@@ -82,6 +82,9 @@ public class AccountManageActivity extends ActionBarYukariBase {
         }
     }
 
+    @Override
+    public void onServiceDisconnected() {}
+
     public static class AccountListFragment extends ListFragment implements ColorPickerDialogFragment.ColorPickerCallback{
         private Adapter adapter;
         private List<AuthUserRecord> dataList = new ArrayList<>();

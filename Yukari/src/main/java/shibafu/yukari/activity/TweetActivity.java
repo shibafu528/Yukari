@@ -1735,6 +1735,9 @@ public class TweetActivity extends ActionBarYukariBase implements DraftDialogFra
     }
 
     @Override
+    public void onServiceDisconnected() {}
+
+    @Override
     public void onDialogChose(int requestCode, int which, Bundle extras) {
         switch (requestCode) {
             case REQUEST_DIALOG_CLEAR:
