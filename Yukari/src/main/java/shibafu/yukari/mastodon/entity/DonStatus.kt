@@ -201,14 +201,12 @@ class DonStatus(val status: Status,
             while (eventType != XmlPullParser.END_DOCUMENT) {
                 when (eventType) {
                     XmlPullParser.START_TAG -> {
+                        if (insertLineBreakBeforeNewParagraph && textContent.isNotEmpty()) {
+                            textContent.append("\n\n")
+                            insertLineBreakBeforeNewParagraph = false
+                        }
                         when (xpp.name) {
                             "br" -> textContent.append("\n")
-                            "p" -> {
-                                // spoilerの直後、または2つ目以降の段落開始前。空行を差し込む。
-                                if (textContent.isNotEmpty()) {
-                                    insertLineBreakBeforeNewParagraph = true
-                                }
-                            }
                             "a" -> {
                                 val classes = xpp.getAttributeValue(null, "class") ?: ""
                                 // not(.mention) -> 通常のリンクとして処理
@@ -226,8 +224,17 @@ class DonStatus(val status: Status,
                             }
                         }
                     }
+                    XmlPullParser.END_TAG -> {
+                        when (xpp.name) {
+                            "p", "h1", "h2", "h3", "h4", "h5", "h6",
+                            "blockquote", "pre", "table", "ul", "ol", "dl",
+                            "figure", "hr", "details", "fieldset" -> {
+                                insertLineBreakBeforeNewParagraph = true
+                            }
+                        }
+                    }
                     XmlPullParser.TEXT -> {
-                        if (insertLineBreakBeforeNewParagraph) {
+                        if (insertLineBreakBeforeNewParagraph && textContent.isNotEmpty()) {
                             textContent.append("\n\n")
                             insertLineBreakBeforeNewParagraph = false
                         }
