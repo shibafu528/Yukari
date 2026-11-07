@@ -34,4 +34,8 @@ public abstract class ListYukariBaseFragment extends ListFragment implements Twi
     public TwitterService getTwitterService() {
         return servicesConnection.getTwitterService();
     }
+
+    public UserExtrasManager getUserExtrasManager() {
+        return getTwitterService();
+    }
 }

@@ -28,7 +28,6 @@ import shibafu.yukari.common.TabType
 import shibafu.yukari.common.TweetAdapter
 import shibafu.yukari.common.async.ThrowableAsyncTask
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask
-import shibafu.yukari.core.App
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.database.Bookmark
 import shibafu.yukari.entity.ExceptionStatus
@@ -457,7 +456,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
         statusCapacity = users.size * CAPACITY_INITIAL_FACTOR
 
         if (statusAdapter != null) {
-            statusAdapter?.setUserExtras(App.getInstance(requireContext()).userExtrasManager.userExtras)
+            statusAdapter?.setUserExtras(userExtrasManager.userExtras)
             statusAdapter?.setStatusLoader(twitterService.statusLoader)
         }
 
@@ -785,7 +784,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
             // 自身の所有するStatusの場合、書き換えてはいけない
             if (status is TimelineStatus<*> && !status.isOwnedStatus()) {
                 // 優先アカウント設定が存在するか？
-                val priorityAccount = App.getInstance(requireContext()).userExtrasManager.userExtras.firstOrNull { it.id == status.originStatus.user.identicalUrl }?.priorityAccount
+                val priorityAccount = userExtrasManager.userExtras.firstOrNull { it.id == status.originStatus.user.identicalUrl }?.priorityAccount
                 if (priorityAccount != null) {
                     status.prioritizedUser = priorityAccount
                 }

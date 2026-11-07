@@ -18,7 +18,6 @@ import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.StatusChildUI;
 import shibafu.yukari.common.StatusUI;
-import shibafu.yukari.core.App;
 import shibafu.yukari.database.Bookmark;
 import shibafu.yukari.database.UserExtrasManager;
 import shibafu.yukari.entity.Status;
@@ -168,7 +167,7 @@ public class StatusActivity extends ActionBarYukariBase implements StatusUI {
 
     @Override
     public void onServiceConnected() {
-        UserExtrasManager userExtrasManager = App.getInstance(this).getUserExtrasManager();
+        UserExtrasManager userExtrasManager = getUserExtrasManager();
         tweetView.setUserExtras(userExtrasManager.getUserExtras());
         tweetView.updateView();
 

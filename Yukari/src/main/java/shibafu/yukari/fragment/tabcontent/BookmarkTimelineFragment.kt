@@ -5,7 +5,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import shibafu.yukari.core.App
 import shibafu.yukari.database.Bookmark
 import shibafu.yukari.database.MuteConfig
 import shibafu.yukari.entity.Status
@@ -63,7 +62,7 @@ class BookmarkTimelineFragment : TimelineFragment(), CoroutineScope {
             status.setRepresentIfOwned(twitterService.users)
             if (!status.isOwnedStatus()) {
                 // 優先アカウント設定が存在するか？
-                val priorityAccount = App.getInstance(requireContext()).userExtrasManager.userExtras.firstOrNull { it.id == status.originStatus.user.identicalUrl }?.priorityAccount
+                val priorityAccount = userExtrasManager.userExtras.firstOrNull { it.id == status.originStatus.user.identicalUrl }?.priorityAccount
                 if (priorityAccount != null) {
                     status.prioritizedUser = priorityAccount
                 }
