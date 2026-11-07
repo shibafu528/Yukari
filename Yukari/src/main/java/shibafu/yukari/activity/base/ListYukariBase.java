@@ -29,9 +29,6 @@ public abstract class ListYukariBase extends ListActivity {
         new Handler(Looper.getMainLooper()).post(this::onServiceConnected);
     }
 
-    /**
-     * @deprecated Implementations should move to {@link #onStart()}.
-     */
     @Deprecated
     public void onServiceConnected() {}
 }
