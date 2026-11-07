@@ -1,17 +1,19 @@
 package shibafu.yukari.activity.base;
 
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-
 import androidx.appcompat.app.AppCompatActivity;
 
+import shibafu.yukari.service.TwitterService;
+import shibafu.yukari.service.TwitterServiceConnection;
+import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.util.ThemeUtil;
 
 /**
  * Created by shibafu on 14/07/12.
  */
-public abstract class ActionBarYukariBase extends AppCompatActivity {
+public abstract class ActionBarYukariBase extends AppCompatActivity implements TwitterServiceConnection.ServiceConnectionCallback, TwitterServiceDelegate {
+    private TwitterServiceConnection servicesConnection = new TwitterServiceConnection(this);
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         if (allowAutoTheme()) {
@@ -28,25 +30,32 @@ public abstract class ActionBarYukariBase extends AppCompatActivity {
         super.onCreate(savedInstanceState);
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     protected void onStart() {
         super.onStart();
-        // onServiceConnected()がかつてサービスバインドで呼ばれていて、onStart()より若干遅れて実行されていたことの再現
-        new Handler(Looper.getMainLooper()).post(this::onServiceConnected);
+        servicesConnection.connect(this);
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     protected void onStop() {
         super.onStop();
-        onServiceDisconnected();
+        servicesConnection.disconnect(this);
     }
 
-    @Deprecated
+    @Override
+    public boolean isTwitterServiceBound() {
+        return servicesConnection.isServiceBound();
+    }
+
+    @Override
+    public TwitterService getTwitterService() {
+        return servicesConnection.getTwitterService();
+    }
+
+    @Override
     public void onServiceConnected() {}
 
-    @Deprecated
+    @Override
     public void onServiceDisconnected() {}
 
     protected boolean allowAutoTheme() {

@@ -36,9 +36,12 @@ import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.entity.Status
 import shibafu.yukari.media2.Media
 import shibafu.yukari.media2.MediaFactory
+import shibafu.yukari.service.TwitterService
+import shibafu.yukari.service.TwitterServiceDelegate
 import shibafu.yukari.twitter.TwitterUtil
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.util.StringUtil
+import shibafu.yukari.util.getTwitterServiceAwait
 import shibafu.yukari.util.putDebugLog
 import shibafu.yukari.util.showToast
 import shibafu.yukari.view.StatusView
@@ -275,7 +278,7 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
         override fun getItem(position: Int): Fragment = PreviewFragment.newInstance(collection[position], user)
     }
 
-    class PreviewFragment : Fragment(), CoroutineScope {
+    class PreviewFragment : Fragment(), CoroutineScope, TwitterServiceDelegate {
         // Arguments
         val uri: Uri
             get() = arguments!!.getParcelable(ARG_URI)!!
@@ -525,6 +528,10 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
 
             return cacheDir
         }
+
+        override fun getTwitterService(): TwitterService? = (requireActivity() as TwitterServiceDelegate).twitterService
+
+        override fun isTwitterServiceBound(): Boolean = (requireActivity() as TwitterServiceDelegate).isTwitterServiceBound
 
         companion object {
             private const val ARG_URI = "uri"

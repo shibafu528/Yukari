@@ -19,6 +19,8 @@ import shibafu.yukari.core.App;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.entity.StatusDraft;
+import shibafu.yukari.service.TwitterService;
+import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 
@@ -32,6 +34,7 @@ import java.util.Locale;
 public class DraftDialogFragment extends DialogFragment {
 
     private DraftDialogEventListener listener;
+    private TwitterService service;
 
     private ListView listView;
     private DraftAdapter adapter;
@@ -51,6 +54,7 @@ public class DraftDialogFragment extends DialogFragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
+        service = ((TwitterServiceDelegate)context).getTwitterService();
         drafts = App.getInstance(requireContext()).getDatabase().getDrafts();
     }
 

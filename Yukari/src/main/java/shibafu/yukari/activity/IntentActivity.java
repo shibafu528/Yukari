@@ -15,6 +15,7 @@ import shibafu.yukari.database.AccountManager;
 import shibafu.yukari.database.Provider;
 import shibafu.yukari.entity.StatusDraft;
 import shibafu.yukari.service.PostService;
+import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.entity.TwitterStatus;

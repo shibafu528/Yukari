@@ -2,15 +2,18 @@ package shibafu.yukari.activity.base;
 
 import android.app.ListActivity;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 
+import shibafu.yukari.service.TwitterService;
+import shibafu.yukari.service.TwitterServiceConnection;
+import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.util.ThemeUtil;
 
 /**
  * Created by shibafu on 14/07/12.
  */
-public abstract class ListYukariBase extends ListActivity {
+public abstract class ListYukariBase extends ListActivity implements TwitterServiceConnection.ServiceConnectionCallback, TwitterServiceDelegate {
+    private TwitterServiceConnection servicesConnection = new TwitterServiceConnection(this);
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         ThemeUtil.setActivityTheme(this);
@@ -21,24 +24,25 @@ public abstract class ListYukariBase extends ListActivity {
         super.onCreate(savedInstanceState);
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     protected void onStart() {
         super.onStart();
-        // onServiceConnected()がかつてサービスバインドで呼ばれていて、onStart()より若干遅れて実行されていたことの再現
-        new Handler(Looper.getMainLooper()).post(this::onServiceConnected);
+        servicesConnection.connect(this);
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     protected void onStop() {
         super.onStop();
-        onServiceDisconnected();
+        servicesConnection.disconnect(this);
     }
 
-    @Deprecated
-    public void onServiceConnected() {}
+    @Override
+    public boolean isTwitterServiceBound() {
+        return servicesConnection.isServiceBound();
+    }
 
-    @Deprecated
-    public void onServiceDisconnected() {}
+    @Override
+    public TwitterService getTwitterService() {
+        return servicesConnection.getTwitterService();
+    }
 }

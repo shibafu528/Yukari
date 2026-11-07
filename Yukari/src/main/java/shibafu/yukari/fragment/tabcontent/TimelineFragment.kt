@@ -230,7 +230,9 @@ open class TimelineFragment : ListYukariBaseFragment(),
         super.onDetach()
         onScrollListeners.remove(unreadNotifierBehavior)
         unreadNotifierBehavior.onDetach()
-        App.getInstance(requireContext()).timelineHub.removeObserver(this)
+        if (isTwitterServiceBound) {
+            App.getInstance(requireContext()).timelineHub.removeObserver(this)
+        }
         listAdapter = null
         statusAdapter = null
         if (activity is MainActivity) {
