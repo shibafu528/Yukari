@@ -33,13 +33,11 @@ import shibafu.yukari.activity.base.ActionBarYukariBase;
 import shibafu.yukari.common.TabInfo;
 import shibafu.yukari.common.TabType;
 import shibafu.yukari.common.async.ThrowableAsyncTask;
-import shibafu.yukari.core.App;
 import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.databinding.RowTabeditBinding;
 import shibafu.yukari.filter.compiler.QueryCompiler;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
-import shibafu.yukari.twitter.TwitterUtil;
 import twitter4j.ResponseList;
 import twitter4j.Twitter;
 import twitter4j.TwitterException;
@@ -129,6 +127,11 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
     @Override
     public void onServiceConnected() {
         findInnerFragment().reloadList();
+    }
+
+    @Override
+    public void onServiceDisconnected() {
+
     }
 
     public static class InnerFragment extends ListFragment implements SimpleAlertDialogFragment.OnDialogChoseListener {
@@ -233,7 +236,7 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
                     if (tab.getId() == id) {
                         tab.setFilterQuery(newQuery);
 
-                        CentralDatabase database = App.getInstance(requireContext()).getDatabase();
+                        CentralDatabase database = ((TabEditActivity) getActivity()).getTwitterService().getDatabase();
                         database.updateRecord(tab);
                         break;
                     }
@@ -254,7 +257,7 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
         }
 
         public void addTab(int type, AuthUserRecord userRecord, Object... args) {
-            CentralDatabase database = App.getInstance(requireContext()).getDatabase();
+            CentralDatabase database = ((TabEditActivity) getActivity()).getTwitterService().getDatabase();
             switch (type) {
                 case TabType.TABTYPE_HOME:
                 case TabType.TABTYPE_MENTION:
@@ -297,13 +300,13 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
             for (int i = 0; i < tabs.size(); i++) {
                 tabs.get(i).setOrder(i);
             }
-            App.getInstance(requireContext()).getDatabase().updateRecord(tabs);
+            ((TabEditActivity) getActivity()).getTwitterService().getDatabase().updateRecord(tabs);
         }
 
         public void reloadList() {
             //全て再読み込み
             tabs.clear();
-            tabs.addAll(App.getInstance(requireContext()).getDatabase().getTabs());
+            tabs.addAll(((TabEditActivity) getActivity()).getTwitterService().getDatabase().getTabs());
             adapter.notifyDataSetChanged();
         }
 
@@ -311,7 +314,8 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
         public void onDialogChose(int requestCode, int which, @Nullable Bundle extras) {
             if (requestCode == DIALOG_CONFIRM) {
                 if (which == DialogInterface.BUTTON_POSITIVE && deleteReserve != null) {
-                    App.getInstance(requireContext()).getDatabase().deleteRecord(deleteReserve);
+                    ((TabEditActivity)getActivity()).getTwitterService().getDatabase()
+                            .deleteRecord(deleteReserve);
                     reloadList();
                     Toast.makeText(getActivity(), "タブを削除しました", Toast.LENGTH_LONG).show();
                 }
@@ -506,7 +510,7 @@ public class TabEditActivity extends ActionBarYukariBase implements SimpleAlertD
                             @Override
                             protected ThrowableResult<ResponseList<UserList>> doInBackground(AuthUserRecord... params) {
                                 try {
-                                    Twitter twitter = TwitterUtil.getTwitterOrThrow(requireContext(), params[0]);
+                                    Twitter twitter = ((TabEditActivity) getActivity()).getTwitterService().getTwitterOrThrow(params[0]);
                                     return new ThrowableResult<>(twitter.getUserLists(params[0].NumericId));
                                 } catch (TwitterException e) {
                                     e.printStackTrace();

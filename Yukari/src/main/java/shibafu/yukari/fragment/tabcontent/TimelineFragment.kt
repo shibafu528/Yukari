@@ -28,7 +28,6 @@ import shibafu.yukari.common.TabType
 import shibafu.yukari.common.TweetAdapter
 import shibafu.yukari.common.async.ThrowableAsyncTask
 import shibafu.yukari.common.async.ThrowableTwitterAsyncTask
-import shibafu.yukari.core.App
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.database.Bookmark
 import shibafu.yukari.entity.ExceptionStatus
@@ -230,7 +229,9 @@ open class TimelineFragment : ListYukariBaseFragment(),
         super.onDetach()
         onScrollListeners.remove(unreadNotifierBehavior)
         unreadNotifierBehavior.onDetach()
-        App.getInstance(requireContext()).timelineHub.removeObserver(this)
+        if (isTwitterServiceBound) {
+            twitterService?.timelineHub?.removeObserver(this)
+        }
         listAdapter = null
         statusAdapter = null
         if (activity is MainActivity) {
@@ -266,7 +267,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
                                             loadMarkerDate = clickedElement.createdAt,
                                             stringCursor = clickedElement.stringCursor,
                                             longCursor = clickedElement.longCursor)
-                                    val taskKey = App.getInstance(requireContext()).statusLoader.requestRestQuery(timelineId,
+                                    val taskKey = twitterService.statusLoader.requestRestQuery(timelineId,
                                             userRecord, restQuery, params)
                                     clickedElement.taskKey = taskKey
                                     loadingTaskKeys += taskKey
@@ -446,19 +447,17 @@ open class TimelineFragment : ListYukariBaseFragment(),
     }
 
     override fun onServiceConnected() {
-        val app = App.getInstance(requireContext())
-
         // ユーザ情報のバインド
         if (users.isEmpty()) {
-            users += app.accountManager.users
+            users += twitterService.users
         }
 
         // TL初期容量の決定
         statusCapacity = users.size * CAPACITY_INITIAL_FACTOR
 
         if (statusAdapter != null) {
-            statusAdapter?.setUserExtras(app.userExtrasManager.userExtras)
-            statusAdapter?.setStatusLoader(app.statusLoader)
+            statusAdapter?.setUserExtras(userExtrasManager.userExtras)
+            statusAdapter?.setStatusLoader(twitterService.statusLoader)
         }
 
         // クエリコンパイル
@@ -474,16 +473,18 @@ open class TimelineFragment : ListYukariBaseFragment(),
             query = FilterQuery.VOID_QUERY
         }
         // コンパイル完了をMainActivityに通知
-        val mainActivity = activity as? MainActivity
-        mainActivity?.onQueryCompiled(this, query)
+        activity.let { activity ->
+            if (activity is MainActivity) {
+                activity.onQueryCompiled(this, query)
+            }
+        }
 
         // イベント購読開始
-        app.timelineHub.addObserver(this)
+        twitterService?.timelineHub?.addObserver(this)
 
         // 初期読み込み
-        val tabId = arguments!!.getLong(EXTRA_ID)
-        if (statuses.isEmpty() || mainActivity?.needOnStartLoad(tabId) == true) {
-            val statusLoader = app.statusLoader
+        if (statuses.isEmpty()) {
+            val statusLoader = twitterService?.statusLoader ?: return
             query.sources.forEach { source ->
                 val userRecord = source.sourceAccount ?: return@forEach
                 val restQuery = source.getRestQuery() ?: return@forEach
@@ -495,9 +496,10 @@ open class TimelineFragment : ListYukariBaseFragment(),
             } else {
                 swipeRefreshLayout?.isRefreshing = true
             }
-            mainActivity?.setExecutedOnStartLoadFromTab(tabId)
         }
     }
+
+    override fun onServiceDisconnected() {}
 
     override fun onRefresh() {
         if (query.sources.isEmpty()) {
@@ -507,7 +509,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
 
         swipeRefreshLayout?.isRefreshing = true
         clearUnreadNotifier()
-        val statusLoader = App.getInstance(requireContext()).statusLoader
+        val statusLoader = twitterService?.statusLoader ?: return
         query.sources.forEach { source ->
             val userRecord = source.sourceAccount ?: return@forEach
             val restQuery = source.getRestQuery() ?: return@forEach
@@ -621,7 +623,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
 
                         override fun doInBackground(vararg params: DirectMessage): ThrowableAsyncTask.ThrowableResult<Boolean> {
                             var user: AuthUserRecord? = null
-                            for (userRecord in App.getInstance(requireContext()).accountManager.users) {
+                            for (userRecord in twitterService.users) {
                                 if (params[0].recipientId == userRecord.NumericId || params[0].senderId == userRecord.NumericId) {
                                     user = userRecord
                                 }
@@ -630,7 +632,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
                                 return ThrowableAsyncTask.ThrowableResult(IllegalArgumentException("操作対象のユーザが見つかりません."))
                             }
                             try {
-                                val t = TwitterUtil.getTwitterOrThrow(requireContext(), user)
+                                val t = twitterService.getTwitterOrThrow(user)
                                 t.destroyDirectMessage(status.id)
                             } catch (e: TwitterException) {
                                 e.printStackTrace()
@@ -783,7 +785,7 @@ open class TimelineFragment : ListYukariBaseFragment(),
             // 自身の所有するStatusの場合、書き換えてはいけない
             if (status is TimelineStatus<*> && !status.isOwnedStatus()) {
                 // 優先アカウント設定が存在するか？
-                val priorityAccount = App.getInstance(requireContext()).userExtrasManager.userExtras.firstOrNull { it.id == status.originStatus.user.identicalUrl }?.priorityAccount
+                val priorityAccount = userExtrasManager.userExtras.firstOrNull { it.id == status.originStatus.user.identicalUrl }?.priorityAccount
                 if (priorityAccount != null) {
                     status.prioritizedUser = priorityAccount
                 }

@@ -36,7 +36,6 @@ import shibafu.yukari.util.defaultSharedPreferences
 import twitter4j.GeoLocation
 import java.util.regex.Pattern
 import androidx.core.net.toUri
-import shibafu.yukari.core.App
 import shibafu.yukari.util.AttrUtil
 
 class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
@@ -159,6 +158,10 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
 
     override fun onUserChanged(userRecord: AuthUserRecord?) {}
 
+    override fun onServiceConnected() {}
+
+    override fun onServiceDisconnected() {}
+
     private inner class RowAdapter(context: Context, objects: List<Row>) : ArrayAdapter<Row>(context, 0, objects) {
         private val inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
 
@@ -273,7 +276,7 @@ class StatusLinkFragment : ListYukariBaseFragment(), StatusChildUI {
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 startActivity(intent)
             }
-            val hasTwitterAccount = App.getInstance(requireContext()).accountManager.users.any { it.Provider.apiType == Provider.API_TWITTER }
+            val hasTwitterAccount = twitterService?.users?.any { it.Provider.apiType == Provider.API_TWITTER } ?: false
 
             val uri = Uri.parse(url)
             if (hasTwitterAccount && (PATTERN_TWITTER_STATUS.matcher(url).find() || PATTERN_TWITTER_USER.matcher(url).find())) {

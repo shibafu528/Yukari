@@ -8,7 +8,6 @@ import android.text.TextWatcher;
 import android.view.View;
 
 import shibafu.yukari.activity.base.ActionBarYukariBase;
-import shibafu.yukari.core.App;
 import shibafu.yukari.databinding.ActivityQueryBinding;
 import shibafu.yukari.entity.MockStatus;
 import shibafu.yukari.filter.FilterQuery;
@@ -50,7 +49,14 @@ public class QueryEditorActivity extends ActionBarYukariBase {
                 handler.removeCallbacksAndMessages(null);
                 handler.postDelayed(() -> {
                     try {
-                        List<AuthUserRecord> userRecords = App.getInstance(getApplicationContext()).getAccountManager().getUsers();
+                        List<AuthUserRecord> userRecords = null;
+                        if (isTwitterServiceBound() && getTwitterService() != null) {
+                            userRecords = getTwitterService().getUsers();
+                        }
+                        if (userRecords == null) {
+                            userRecords = new ArrayList<>();
+                        }
+
                         FilterQuery q = QueryCompiler.compile(userRecords, s.toString());
                         boolean result = q.evaluate(new MockStatus(0, userRecords.get(0)), new ArrayList<>(), new HashMap<>());
                         binding.tvStatus.setText("OK. => " + result);
@@ -87,4 +93,10 @@ public class QueryEditorActivity extends ActionBarYukariBase {
         int end = binding.etQuery.getSelectionEnd();
         binding.etQuery.getText().replace(Math.min(start, end), Math.max(start, end), text);
     }
+
+    @Override
+    public void onServiceConnected() {}
+
+    @Override
+    public void onServiceDisconnected() {}
 }

@@ -15,10 +15,10 @@ import android.widget.Toast;
 import shibafu.yukari.R;
 import shibafu.yukari.common.FontAsset;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
-import shibafu.yukari.core.App;
-import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.entity.StatusDraft;
+import shibafu.yukari.service.TwitterService;
+import shibafu.yukari.service.TwitterServiceDelegate;
 import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 
@@ -32,6 +32,7 @@ import java.util.Locale;
 public class DraftDialogFragment extends DialogFragment {
 
     private DraftDialogEventListener listener;
+    private TwitterService service;
 
     private ListView listView;
     private DraftAdapter adapter;
@@ -51,7 +52,8 @@ public class DraftDialogFragment extends DialogFragment {
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        drafts = App.getInstance(requireContext()).getDatabase().getDrafts();
+        service = ((TwitterServiceDelegate)context).getTwitterService();
+        drafts = service.getDatabase().getDrafts();
     }
 
     @Override
@@ -89,9 +91,8 @@ public class DraftDialogFragment extends DialogFragment {
                         dialog.dismiss();
                         currentDialog = null;
 
-                        CentralDatabase database = App.getInstance(requireContext()).getDatabase();
-                        database.deleteDraft(drafts.get(pos));
-                        drafts = database.getDrafts();
+                        service.getDatabase().deleteDraft(drafts.get(pos));
+                        drafts = service.getDatabase().getDrafts();
                         adapter.notifyDataSetChanged();
 
                         if (drafts.size() < 1) {
@@ -173,7 +174,7 @@ public class DraftDialogFragment extends DialogFragment {
                 TextView tvTimestamp = (TextView)v.findViewById(R.id.tweet_timestamp);
                 String info = "";
                 if (d.isDirectMessage()) {
-                    DBUser dbUser = App.getInstance(requireContext()).getDatabase().getUser(TwitterUtil.getUserIdFromUrl(d.getInReplyTo().getUrl()));
+                    DBUser dbUser = service.getDatabase().getUser(TwitterUtil.getUserIdFromUrl(d.getInReplyTo().getUrl()));
                     info += "DM to " + (dbUser!=null? "@" + dbUser.getScreenName() : "(Unknown User)") + "\n";
                 }
                 if (d.isFailedDelivery()) {

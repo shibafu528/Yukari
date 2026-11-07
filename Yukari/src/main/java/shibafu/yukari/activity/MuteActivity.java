@@ -28,11 +28,11 @@ import com.google.android.material.timepicker.TimeFormat;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
-import shibafu.yukari.core.App;
 import shibafu.yukari.database.MuteConfig;
 import shibafu.yukari.database.MuteMatch;
 import shibafu.yukari.databinding.DialogMuteBinding;
 import shibafu.yukari.fragment.SimpleAlertDialogFragment;
+import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.util.StringUtil;
 
 import java.text.SimpleDateFormat;
@@ -95,6 +95,11 @@ public class MuteActivity extends ActionBarYukariBase{
         findInnerFragment().reloadList();
     }
 
+    @Override
+    public void onServiceDisconnected() {
+
+    }
+
     public static class InnerFragment extends ListFragment implements
             SimpleAlertDialogFragment.OnDialogChoseListener {
 
@@ -150,13 +155,14 @@ public class MuteActivity extends ActionBarYukariBase{
         }
 
         public void updateMuteConfig(MuteConfig config) {
-            App.getInstance(requireContext()).getDatabase().updateRecord(config);
+            TwitterService twitterService = ((MuteActivity) getActivity()).getTwitterService();
+            twitterService.getDatabase().updateRecord(config);
 
             reloadList();
         }
 
         public void reloadList() {
-            configs = App.getInstance(requireContext()).getDatabase().getRecords(MuteConfig.class);
+            configs = ((MuteActivity) getActivity()).getTwitterService().getDatabase().getRecords(MuteConfig.class);
             setListAdapter(new Adapter(getActivity(), configs));
         }
 
@@ -166,7 +172,8 @@ public class MuteActivity extends ActionBarYukariBase{
                 switch (requestCode) {
                     case DIALOG_DELETE:
                         if (deleteReserve != null) {
-                            App.getInstance(requireContext()).getDatabase().deleteRecord(deleteReserve);
+                            TwitterService twitterService = ((MuteActivity) getActivity()).getTwitterService();
+                            twitterService.getDatabase().deleteRecord(deleteReserve);
                             reloadList();
                             Toast.makeText(getActivity(), "設定を削除しました", Toast.LENGTH_LONG).show();
                         }

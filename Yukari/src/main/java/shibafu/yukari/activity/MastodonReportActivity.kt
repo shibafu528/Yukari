@@ -27,7 +27,6 @@ import kotlinx.coroutines.withContext
 import shibafu.yukari.R
 import shibafu.yukari.activity.base.ActionBarYukariBase
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask
-import shibafu.yukari.core.App
 import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.database.Provider
 import shibafu.yukari.databinding.FragmentReportCategoryBinding
@@ -39,7 +38,9 @@ import shibafu.yukari.fragment.base.YukariBaseFragment
 import shibafu.yukari.mastodon.MastodonApi
 import shibafu.yukari.mastodon.api.ReportsEx
 import shibafu.yukari.mastodon.entity.DonStatus
+import shibafu.yukari.service.TwitterServiceDelegate
 import shibafu.yukari.util.AttrUtil
+import shibafu.yukari.util.getTwitterServiceAwait
 import shibafu.yukari.util.showToast
 
 class MastodonReportActivity : ActionBarYukariBase() {
@@ -69,6 +70,10 @@ class MastodonReportActivity : ActionBarYukariBase() {
         }
     }
 
+    override fun onServiceConnected() {}
+
+    override fun onServiceDisconnected() {}
+
     private fun loadRules(userRecord: AuthUserRecord) {
         lifecycleScope.launch {
             if (model.loadingRules.value!!) {
@@ -77,7 +82,8 @@ class MastodonReportActivity : ActionBarYukariBase() {
 
             model.loadingRules.value = true
             try {
-                val client = App.getInstance(applicationContext).getProviderApi(userRecord)!!.getApiClient(userRecord) as MastodonClient
+                val service = getTwitterServiceAwait() ?: return@launch
+                val client = service.getProviderApi(userRecord)!!.getApiClient(userRecord) as MastodonClient
 
                 val rules = withContext(Dispatchers.IO) {
                     val response = client.get("instance")
@@ -262,6 +268,10 @@ class MastodonReportActivity : ActionBarYukariBase() {
             }
         }
 
+        override fun onServiceConnected() {}
+
+        override fun onServiceDisconnected() {}
+
         companion object {
             private const val REQUEST_CHANGE_ACCOUNT = 1
         }
@@ -310,6 +320,10 @@ class MastodonReportActivity : ActionBarYukariBase() {
                 ArrayList(selectedRules + rule)
             }
         }
+
+        override fun onServiceConnected() {}
+
+        override fun onServiceDisconnected() {}
 
         inner class RuleCheckListAdapter(context: Context, rules: List<Rule>) : ArrayAdapter<Rule>(context, 0, rules) {
             private val inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
@@ -383,7 +397,8 @@ class MastodonReportActivity : ActionBarYukariBase() {
                     try {
                         progressDialog.show(parentFragmentManager, "progress")
 
-                        val api = App.getInstance(requireContext()).getProviderApi(currentUser) as MastodonApi
+                        val twitterService = (requireActivity() as TwitterServiceDelegate).getTwitterServiceAwait() ?: return@launchWhenStarted
+                        val api = twitterService.getProviderApi(currentUser) as MastodonApi
                         withContext(Dispatchers.IO) {
                             api.reportStatus(currentUser, status, comment, forward, category = category, ruleIds = ruleIds)
                         }
@@ -399,6 +414,9 @@ class MastodonReportActivity : ActionBarYukariBase() {
                 }
             }
         }
+
+        override fun onServiceConnected() {}
+        override fun onServiceDisconnected() {}
     }
 
     companion object {

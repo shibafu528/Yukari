@@ -36,9 +36,11 @@ import shibafu.yukari.database.AuthUserRecord
 import shibafu.yukari.entity.Status
 import shibafu.yukari.media2.Media
 import shibafu.yukari.media2.MediaFactory
-import shibafu.yukari.twitter.TwitterUtil
+import shibafu.yukari.service.TwitterService
+import shibafu.yukari.service.TwitterServiceDelegate
 import shibafu.yukari.twitter.entity.TwitterStatus
 import shibafu.yukari.util.StringUtil
+import shibafu.yukari.util.getTwitterServiceAwait
 import shibafu.yukari.util.putDebugLog
 import shibafu.yukari.util.showToast
 import shibafu.yukari.view.StatusView
@@ -263,6 +265,10 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
 
     override fun allowAutoTheme(): Boolean = false
 
+    override fun onServiceConnected() {}
+
+    override fun onServiceDisconnected() {}
+
     class PagerAdapter(fm: FragmentManager,
                        private val collection: Array<Uri>,
                        private val user: AuthUserRecord?) : FragmentStatePagerAdapter(fm) {
@@ -271,7 +277,7 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
         override fun getItem(position: Int): Fragment = PreviewFragment.newInstance(collection[position], user)
     }
 
-    class PreviewFragment : Fragment(), CoroutineScope {
+    class PreviewFragment : Fragment(), CoroutineScope, TwitterServiceDelegate {
         // Arguments
         val uri: Uri
             get() = arguments!!.getParcelable(ARG_URI)!!
@@ -389,8 +395,9 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
                         }
                     } else if (isDMImage(url)) { // DM添付画像 (Twitter)
                         putDebugLog("[PreviewActivity2] load from Twitter DM")
+                        val service = getTwitterServiceAwait() ?: return@async null
                         input = try {
-                            val twitter: Twitter = TwitterUtil.getTwitterOrThrow(context, user)
+                            val twitter: Twitter = service.getTwitterOrThrow(user)
                             twitter.getDMImageAsStream(url)
                         } catch (e: TwitterException) {
                             e.printStackTrace()
@@ -521,6 +528,10 @@ class PreviewActivity2 : ActionBarYukariBase(), CoroutineScope {
 
             return cacheDir
         }
+
+        override fun getTwitterService(): TwitterService? = (requireActivity() as TwitterServiceDelegate).twitterService
+
+        override fun isTwitterServiceBound(): Boolean = (requireActivity() as TwitterServiceDelegate).isTwitterServiceBound
 
         companion object {
             private const val ARG_URI = "uri"

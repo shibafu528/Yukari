@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -54,7 +55,7 @@ import shibafu.yukari.common.async.TwitterAsyncTask;
 import shibafu.yukari.common.bitmapcache.ImageLoaderTask;
 import shibafu.yukari.common.span.HashTagSpan;
 import shibafu.yukari.common.span.UserProfileSpan;
-import shibafu.yukari.core.App;
+import shibafu.yukari.database.AccountManager;
 import shibafu.yukari.database.CentralDatabase;
 import shibafu.yukari.database.DBUser;
 import shibafu.yukari.database.Provider;
@@ -63,6 +64,7 @@ import shibafu.yukari.database.UserExtrasManager;
 import shibafu.yukari.fragment.base.YukariBaseFragment;
 import shibafu.yukari.fragment.tabcontent.TimelineFragment;
 import shibafu.yukari.fragment.tabcontent.TweetListFragmentFactory;
+import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.database.AuthUserRecord;
 import shibafu.yukari.twitter.TwitterUtil;
 import shibafu.yukari.twitter.entity.TwitterUser;
@@ -307,8 +309,14 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
             final ParallelAsyncTask<Void, Void, LoadHolder> task = new ParallelAsyncTask<Void, Void, LoadHolder>() {
                 @Override
                 protected LoadHolder doInBackground(Void... params) {
-                    App app = App.getInstance(requireContext());
-                    CentralDatabase db = app.getDatabase();
+                    while (!isTwitterServiceBound()) {
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
                     DBUser user;
                     if (selfLoadId) {
                         String name = selfLoadName;
@@ -316,13 +324,13 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
                             name = name.substring(1);
                         }
 
-                        user = db.getUser(name);
+                        user = getTwitterService().getDatabase().getUser(name);
                     } else {
-                        user = db.getUser(targetId);
+                        user = getTwitterService().getDatabase().getUser(targetId);
                     }
 
                     if (ProfileFragment.this.user == null) {
-                        ProfileFragment.this.user = app.getAccountManager().getPrimaryUser();
+                        ProfileFragment.this.user = getTwitterService().getPrimaryUser();
                     }
                     if (user != null) {
                         return new LoadHolder(user, null);
@@ -368,11 +376,13 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
             progressBar.setVisibility(View.INVISIBLE);
         }
 
-        List<AuthUserRecord> users = App.getInstance(requireContext()).getAccountManager().getUsers();
-        for (AuthUserRecord usr : users) {
-            if (usr.NumericId == holder.targetUser.getId()) {
-                user = usr;
-                break;
+        if (isTwitterServiceBound()) {
+            List<AuthUserRecord> users = getTwitterService().getUsers();
+            for (AuthUserRecord usr : users) {
+                if (usr.NumericId == holder.targetUser.getId()) {
+                    user = usr;
+                    break;
+                }
             }
         }
 
@@ -522,7 +532,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
     }
 
     private int getTargetUserColor() {
-        UserExtrasManager userExtrasManager = App.getInstance(requireContext()).getUserExtrasManager();
+        UserExtrasManager userExtrasManager = getUserExtrasManager();
         if (userExtrasManager != null) {
             String url = TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId());
             for (UserExtras userExtra : userExtrasManager.getUserExtras()) {
@@ -558,9 +568,18 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
                     sb.append(claim.getSourceAccount().ScreenName);
                     sb.append(": ");
 
-                    Suppressor suppressor = App.getInstance(requireContext()).getSuppressor();
+                    //サービスがバインドされていない場合は待機する
+                    while (!isTwitterServiceBound()) {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
 
-                    Twitter twitter = TwitterUtil.getTwitter(requireContext(), claim.getSourceAccount());
+                    Suppressor suppressor = getTwitterService().getSuppressor();
+
+                    Twitter twitter = getTwitterService().getTwitter(claim.getSourceAccount());
                     if (twitter == null) {
                         sb.append("サービス通信エラー");
                         continue;
@@ -688,7 +707,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
                 if (resultCode == Activity.RESULT_OK) {
                     AuthUserRecord userRecord = (AuthUserRecord) data.getSerializableExtra(AccountChooserActivity.EXTRA_SELECTED_RECORD);
                     if (loadHolder != null && loadHolder.targetUser != null && userRecord != null) {
-                        App.getInstance(requireContext()).getUserExtrasManager().setPriority(TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId()), userRecord);
+                        getUserExtrasManager().setPriority(TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId()), userRecord);
                         Toast.makeText(getActivity(), "優先アカウントを @" + userRecord.ScreenName + " に設定しました", Toast.LENGTH_SHORT).show();
                         updateMenuItems();
 
@@ -704,7 +723,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
     @Override
     public void onServiceConnected() {
         if (user == null) {
-            user = App.getInstance(requireContext()).getAccountManager().getPrimaryUser();
+            user = getTwitterService().getPrimaryUser();
         }
         if (!serviceTasks.isEmpty()) {
             Runnable task;
@@ -715,8 +734,13 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
     }
 
     @Override
+    public void onServiceDisconnected() {
+
+    }
+
+    @Override
     public void onColorPicked(int color, String tag) {
-        UserExtrasManager userExtrasManager = App.getInstance(requireContext()).getUserExtrasManager();
+        UserExtrasManager userExtrasManager = getUserExtrasManager();
         if (userExtrasManager != null) {
             userExtrasManager.setColor(TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId()), color);
             showProfile(loadHolder);
@@ -738,16 +762,23 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
             menu.findItem(R.id.action_unset_priority).setVisible(false);
         } else {
             if (loadHolder != null && loadHolder.targetUser != null) {
-                List<UserExtras> userExtras = App.getInstance(requireContext()).getUserExtrasManager().getUserExtras();
-                String url = TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId());
-                Optional<UserExtras> userExtra = userExtras.stream().filter(ue -> url.equals(ue.getId())).findFirst();
-                AuthUserRecord priorityAccount = userExtra.orElseGet(() -> new UserExtras(url)).getPriorityAccount();
-                if (priorityAccount != null) {
-                    menu.findItem(R.id.action_set_priority).setVisible(true).setTitle("優先アカウントを設定 (現在: @" + priorityAccount.ScreenName + ")");
-                    menu.findItem(R.id.action_unset_priority).setVisible(true);
+                Runnable task = () -> {
+                    List<UserExtras> userExtras = getUserExtrasManager().getUserExtras();
+                    String url = TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId());
+                    Optional<UserExtras> userExtra = userExtras.stream().filter(ue -> url.equals(ue.getId())).findFirst();
+                    AuthUserRecord priorityAccount = userExtra.orElseGet(() -> new UserExtras(url)).getPriorityAccount();
+                    if (priorityAccount != null) {
+                        menu.findItem(R.id.action_set_priority).setVisible(true).setTitle("優先アカウントを設定 (現在: @" + priorityAccount.ScreenName + ")");
+                        menu.findItem(R.id.action_unset_priority).setVisible(true);
+                    } else {
+                        menu.findItem(R.id.action_set_priority).setVisible(true).setTitle("優先アカウントを設定 (未設定)");
+                        menu.findItem(R.id.action_unset_priority).setVisible(false);
+                    }
+                };
+                if (isTwitterServiceBound()) {
+                    task.run();
                 } else {
-                    menu.findItem(R.id.action_set_priority).setVisible(true).setTitle("優先アカウントを設定 (未設定)");
-                    menu.findItem(R.id.action_unset_priority).setVisible(false);
+                    serviceTasks.add(task);
                 }
             }
 
@@ -861,13 +892,12 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
                 return true;
             }
             case R.id.action_unset_priority: {
-                App app = App.getInstance(requireContext());
-                app.getUserExtrasManager().setPriority(TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId()), null);
+                getUserExtrasManager().setPriority(TwitterUtil.getUrlFromUserId(loadHolder.targetUser.getId()), null);
                 Toast.makeText(getActivity(), "優先アカウントを解除しました", Toast.LENGTH_SHORT).show();
 
                 user = (AuthUserRecord) getArguments().getSerializable(EXTRA_USER);
                 if (user == null) {
-                    user = app.getAccountManager().getPrimaryUser();
+                    user = getTwitterService().getPrimaryUser();
                 }
 
                 updateMenuItems();
@@ -1016,9 +1046,21 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
 
         @Override
         protected TwitterException doInBackground(Void... voids) {
+            if (!isTwitterServiceBound()) {
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                if (!isTwitterServiceBound()) {
+                    return null;
+                }
+            }
+
             try {
+                TwitterService service = getTwitterService();
                 User user = null;
-                Twitter twitter = TwitterUtil.getTwitter(requireContext(), getCurrentUserOrPrimary());
+                Twitter twitter = service.getTwitter(getCurrentUserOrPrimary());
                 if (twitter != null) {
                     if (selfLoadId) {
                         String name = selfLoadName;
@@ -1032,7 +1074,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
                 }
 
                 if (user != null) {
-                    CentralDatabase database = App.getInstance(requireContext()).getDatabase();
+                    CentralDatabase database = service.getDatabase();
                     if (database != null) {
                         database.updateRecord(new DBUser(user));
                     }
@@ -1079,7 +1121,7 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
             if (user != null) {
                 return user;
             }
-            return App.getInstance(requireContext()).getAccountManager().getPrimaryUser();
+            return getTwitterService().getPrimaryUser();
         }
     }
 
@@ -1087,11 +1129,27 @@ public class ProfileFragment extends YukariBaseFragment implements FollowDialogF
 
         @Override
         protected Void doInBackground(Void... voids) {
+            if (!isTwitterServiceBound()) {
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                if (!isTwitterServiceBound()) {
+                    return null;
+                }
+            }
+
             LinkedHashMap<AuthUserRecord, Relationship> relationships = new LinkedHashMap<>();
-            List<AuthUserRecord> users = App.getInstance(requireContext()).getAccountManager().getUsers();
+            List<AuthUserRecord> users =
+                    getTwitterService() != null ?
+                            getTwitterService().getUsers() != null ?
+                                    getTwitterService().getUsers()
+                                    : new ArrayList<>()
+                            : new ArrayList<>();
             for (AuthUserRecord userRecord : users) {
                 try {
-                    Twitter twitter = TwitterUtil.getTwitter(requireContext(), userRecord);
+                    Twitter twitter = getTwitterService().getTwitter(userRecord);
                     if (twitter != null) {
                         relationships.put(userRecord, twitter.showFriendship(userRecord.NumericId, loadHolder.targetUser.getId()));
                     }

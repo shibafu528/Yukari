@@ -12,6 +12,7 @@ import shibafu.yukari.activity.CommandsPrefActivity;
 import shibafu.yukari.activity.ConfigActivity;
 import shibafu.yukari.activity.MaintenanceActivity;
 import shibafu.yukari.activity.TweetActivity;
+import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.database.AuthUserRecord;
 
 import java.util.ArrayList;

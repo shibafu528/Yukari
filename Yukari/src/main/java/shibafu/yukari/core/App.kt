@@ -16,9 +16,6 @@ import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.content.edit
-import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.common.GooglePlayServicesRepairableException
@@ -41,11 +38,8 @@ import shibafu.yukari.database.Provider
 import shibafu.yukari.database.UserExtrasManager
 import shibafu.yukari.database.UserExtrasManagerImpl
 import shibafu.yukari.linkage.ApiCollectionProvider
-import shibafu.yukari.linkage.LifecycleStreamManager
 import shibafu.yukari.linkage.ProviderApi
-import shibafu.yukari.linkage.ProviderStream
 import shibafu.yukari.linkage.StatusLoader
-import shibafu.yukari.linkage.StreamCollectionProvider
 import shibafu.yukari.linkage.TimelineHub
 import shibafu.yukari.linkage.TimelineHubImpl
 import shibafu.yukari.linkage.TimelineHubProvider
@@ -54,14 +48,13 @@ import shibafu.yukari.mastodon.DefaultVisibilityCache
 import shibafu.yukari.mastodon.FetchDefaultVisibilityTask
 import shibafu.yukari.mastodon.MastodonApi
 import shibafu.yukari.media2.Media
-import shibafu.yukari.worker.CacheCleanerWorker
 import shibafu.yukari.twitter.TwitterApi
 import shibafu.yukari.twitter.TwitterProvider
 
 /**
  * Created by shibafu on 2015/08/29.
  */
-class App : Application(), TimelineHubProvider, ApiCollectionProvider, StreamCollectionProvider, TwitterProvider {
+class App : Application(), TimelineHubProvider, ApiCollectionProvider, TwitterProvider {
     val database: CentralDatabase by lazy { CentralDatabase(this).open() }
     val accountManager: AccountManager by lazy { AccountManagerImpl(this, database) }
     val userExtrasManager: UserExtrasManager by lazy { UserExtrasManagerImpl(database, accountManager.users) }
@@ -85,7 +78,6 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, StreamCol
     lateinit var okhttpClient: OkHttpClient
 
     private val providerApis = arrayOf(TwitterApi(), MastodonApi())
-    private val streamManager by lazy { LifecycleStreamManager(this) }
 
     private val databaseUpdateListener = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -105,19 +97,9 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, StreamCol
     private val userReloadListener = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent == null) return
-
-            val removedUsers = intent.getSerializableExtra(AccountManager.EXTRA_RELOAD_REMOVED) as java.util.ArrayList<AuthUserRecord>
-            removedUsers.forEach { userRecord ->
-                streamManager.onRemoveUser(userRecord)
-            }
-
             val addedUsers = intent.getSerializableExtra(AccountManager.EXTRA_RELOAD_ADDED) as java.util.ArrayList<AuthUserRecord>
-            addedUsers.forEach { userRecord ->
-                streamManager.onAddUser(userRecord)
-
-                if (userRecord.Provider.apiType == Provider.API_MASTODON) {
-                    FetchDefaultVisibilityTask(this@App, defaultVisibilityCache, userRecord).executeParallel()
-                }
+            addedUsers.filter { it.Provider.apiType == Provider.API_MASTODON }.forEach { userRecord ->
+                FetchDefaultVisibilityTask(this@App, defaultVisibilityCache, userRecord).executeParallel()
             }
         }
     }
@@ -153,27 +135,6 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, StreamCol
         localBroadcastManager.registerReceiver(databaseUpdateListener, IntentFilter(DatabaseEvent.ACTION_UPDATE))
         localBroadcastManager.registerReceiver(userReloadListener, IntentFilter(AccountManager.ACTION_RELOADED_USERS))
 
-        // ライフサイクルイベントのリスナー登録
-        ProcessLifecycleOwner.get().also {
-            it.lifecycle.addObserver(object : DefaultLifecycleObserver {
-                override fun onStop(owner: LifecycleOwner) {
-                    Log.d(LOG_TAG, "[onStop] start")
-
-                    // わざわざ止める必要もないという説はある
-                    Log.d(LOG_TAG, "[onStop] cancel all status loader tasks")
-                    statusLoader.cancelAll()
-
-                    Log.d(LOG_TAG, "[onStop] enqueue cache cleaner service")
-                    CacheCleanerWorker.enqueueWork(applicationContext)
-
-                    System.gc()
-
-                    Log.d(LOG_TAG, "[onStop] finished")
-                }
-            })
-            it.lifecycle.addObserver(streamManager)
-        }
-
         // API Providerの初期化
         providerApis.forEach { api ->
             api.onCreate(this)
@@ -181,6 +142,15 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, StreamCol
 
         // 画像キャッシュの初期化
         BitmapCache.initialize(this)
+
+        if (getProcessName() == packageName) {
+            // Mastodon: default visibilityの取得
+            for (user in accountManager.users) {
+                if (user.Provider.apiType == Provider.API_MASTODON) {
+                    FetchDefaultVisibilityTask(this, defaultVisibilityCache, user).executeParallel()
+                }
+            }
+        }
     }
 
     override fun onTrimMemory(level: Int) {
@@ -204,14 +174,6 @@ class App : Application(), TimelineHubProvider, ApiCollectionProvider, StreamCol
         }
         throw UnsupportedOperationException("API Type $apiType not implemented.")
     }
-
-    override fun getProviderStream(userRecord: AuthUserRecord): ProviderStream? = streamManager.getProviderStream(userRecord)
-
-    override fun getProviderStream(apiType: Int): ProviderStream = streamManager.getProviderStream(apiType)
-
-    override fun getProviderStreams(): Array<out ProviderStream?> = streamManager.providerStreams
-
-    override fun startStreamChannels() = streamManager.startStreamChannels()
 
     private fun installSecurityProvider() {
         try {

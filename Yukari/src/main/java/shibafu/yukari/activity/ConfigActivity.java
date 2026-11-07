@@ -22,8 +22,8 @@ import com.takisoft.preferencex.PreferenceFragmentCompat;
 
 import shibafu.yukari.R;
 import shibafu.yukari.activity.base.ActionBarYukariBase;
-import shibafu.yukari.core.App;
 import shibafu.yukari.database.AccountManager;
+import shibafu.yukari.service.TwitterService;
 import shibafu.yukari.database.AuthUserRecord;
 
 /**
@@ -50,6 +50,12 @@ public class ConfigActivity extends ActionBarYukariBase {
         }
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    public void onServiceConnected() {}
+
+    @Override
+    public void onServiceDisconnected() {}
 
     public static class InnerFragment extends PreferenceFragmentCompat implements SharedPreferences.OnSharedPreferenceChangeListener {
         public static InnerFragment newInstance(String category) {
@@ -215,8 +221,9 @@ public class ConfigActivity extends ActionBarYukariBase {
                         prefRepairNotificationChannel.setEnabled(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O);
                         prefRepairNotificationChannel.setOnPreferenceClickListener(preference -> {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                TwitterService service = ((ConfigActivity) getActivity()).getTwitterService();
                                 NotificationManager nm = (NotificationManager) getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
-                                for (AuthUserRecord user : App.getInstance(requireContext()).getAccountManager().getUsers()) {
+                                for (AuthUserRecord user : service.getUsers()) {
                                     AccountManager.createAccountNotificationChannels(nm, user, true);
                                 }
                                 Toast.makeText(getActivity(), "修復しました。", Toast.LENGTH_SHORT).show();
@@ -243,7 +250,10 @@ public class ConfigActivity extends ActionBarYukariBase {
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
             if ("pref_notif_per_account_channel".equals(key)) {
-                App.getInstance(requireContext()).getAccountManager().reloadUsers();
+                TwitterService service = ((ConfigActivity) getActivity()).getTwitterService();
+                if (service != null) {
+                    service.reloadUsers();
+                }
             }
         }
     }
